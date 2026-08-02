@@ -1,4 +1,6 @@
-from screen.screen import Screen
+import pygame
+
+from ..screen import Screen
 
 class Gameplay(Screen): 
     def __init__ (self, app, selected_map): 
@@ -6,7 +8,7 @@ class Gameplay(Screen):
             self.game_map = selected_map
 
     def handle_event(self, event):
-        return super().handle_event(event)
+        pass
 
         """
         [TO DO]: 
@@ -23,4 +25,25 @@ class Gameplay(Screen):
         """
 
     def draw(self, window):
-        window.fill("lightblue")
+        window.blit(self.game_map.image, (0,0))
+
+        
+        for position in self.game_map.tower_positions: 
+            x, y = position
+
+            pygame.draw.rect(
+                window,
+                "gray", 
+                (x,y, 24, 24) ) 
+        
+
+        pygame.draw.lines(
+             window, "red", False, self.game_map.enemy_path, 1
+        )
+
+        for position in self.game_map.enemy_path: 
+             x,y = position
+
+             pygame.draw.circle(
+                  window, "green", (x,y), 1.0
+             )

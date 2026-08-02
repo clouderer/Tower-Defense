@@ -7,8 +7,15 @@ for our purposes all maps will have the same diemsnions:
     It is large enough for the game, and small enough to have it as a little side window
 """
 
+#[TO DO] Tower Slot Positions
+
 class GameMap: 
-    def __init__(self, image, enemy_path):
+    def __init__(self, image, enemy_path, tower_positions):
         self.image =  image
-        self.enemy_path = enemy_path
         self.width, self.height = image.get_size() 
+
+        self.enemy_path = enemy_path
+        self.spawn_position = enemy_path[0]
+        self.exit_position = enemy_path[-1]
+
+        self.tower_positions = tower_positions

@@ -1,4 +1,4 @@
-from screen.screen import Screen
+from ..screen import Screen
 
 class PauseMenu(Screen): 
     pass
