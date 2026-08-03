@@ -1,8 +1,8 @@
 import pygame
 
-from .screen.types.gameplay      import Gameplay
-from .maps.game_map              import GameMap
-from pathlib                     import Path
+from .screen.types.gameplay.gameplay    import Gameplay
+from .maps.game_map                     import GameMap
+from pathlib                            import Path
 
 DISPLAY_WIDTH = 600 
 DISPLAY_HEIGHT = 350
@@ -88,14 +88,12 @@ tmp_tower_positions = [
     (451,126),
     (476,126),
 
-    (451, 151),
-    (476, 151),
-
-    (451, 176),
+    (451, 201),
+    (451, 226),
+    (451, 251),
 
     (376,301),
     (401,301),
-
 ]
 
 tmp_image_path = Path(__file__).resolve().parents[1]/"asset_files"/"maps"/"neon_grid.png"

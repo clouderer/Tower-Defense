@@ -1,3 +1,3 @@
-from ..screen import Screen
+from ...screen import Screen
 class ResultScreen(Screen): 
     pass
