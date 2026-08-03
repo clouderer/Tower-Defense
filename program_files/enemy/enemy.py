@@ -1,0 +1,47 @@
+import pygame 
+import math
+from abc import ABC
+
+
+class Enemy: 
+    def __init__(self, path): 
+        self.max_health = 50
+        self.current_health = self.max_health
+
+        self.speed  = 100 # px per second
+
+        self.reward = 10
+
+        self.path = path
+        self.current_waypoint = 1
+
+        self.x_position, self.y_position = path[0]
+
+
+        self.is_alive = True
+        self.reached_end = False
+        
+    def draw(self, window): 
+        pygame.draw.circle(window, "purple", (self.x_position, self.y_position), 10)
+
+    def update(self, dt): 
+        if self.reached_end: 
+            return 
+    
+        target_x, target_y = self.path[self.current_waypoint]
+
+        dx = target_x - self.x_position
+        dy = target_y - self.y_position
+
+        distance = math.sqrt(dx*dx + dy*dy)
+        remaining_distance = dt * self.speed
+
+        if remaining_distance >= distance: 
+            self.x_position, self.y_position = self.path[self.current_waypoint]
+            self.current_waypoint += 1
+        else: 
+            self.x_position += (dx / distance) * remaining_distance 
+            self.y_position += (dy / distance) * remaining_distance
+
+        if self.current_waypoint >= len(self.path):
+            self.reached_end = True
