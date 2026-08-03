@@ -1,6 +1,6 @@
 import pygame 
 import math
-from abc import ABC
+from abc import ABC, abstractmethod
 
 
 class Enemy: 
@@ -8,7 +8,7 @@ class Enemy:
         self.max_health = 50
         self.current_health = self.max_health
 
-        self.speed  = 100 # px per second
+        self.speed  = 100
 
         self.reward = 10
 
@@ -20,7 +20,8 @@ class Enemy:
 
         self.is_alive = True
         self.reached_end = False
-        
+
+    #[TO DO] abstract this 
     def draw(self, window): 
         pygame.draw.circle(window, "purple", (self.x_position, self.y_position), 10)
 
