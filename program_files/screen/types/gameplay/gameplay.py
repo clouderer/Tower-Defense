@@ -43,8 +43,8 @@ class Gameplay(Screen):
                     if not slot.occupied and slot.selected: 
                         slot.occupied = True
                         self.towers.append(Tower(slot))
-                    else: 
-                        continue
+                        self.selected_tower_type = None
+
                     
         if event.type == pygame.MOUSEMOTION and self.selected_tower_type != None: 
             for slot in self.tower_slots: 
@@ -52,7 +52,7 @@ class Gameplay(Screen):
 
         if event.type == pygame.KEYDOWN: 
             if event.key == pygame.K_1 or event.key == pygame.K_KP1: 
-                self.selected_tower_type = Tower
+                self.selected_tower_type = "BASIC TOWER"
             if event.key == pygame.K_ESCAPE:
                 self.selected_tower_type = None
             if event.key == pygame.K_p: 
@@ -84,10 +84,16 @@ class Gameplay(Screen):
         for tower in self.towers:
             tower.draw(window)
 
+        if self.selected_tower_type != None: 
+            font = pygame.font.Font("freesansbold.ttf", 10)
+            text = font.render ("SELECTED: " + self.selected_tower_type, True, "White")
+            text_rect = text.get_rect(bottomleft = (10,340))
+            window.blit(text, text_rect)
+            
         if self.enemy.reached_end:
             #[TO DO] - give the CPU damage equivalent to the health of the enemy
             font = pygame.font.Font("freesansbold.ttf", 32)
-            text = font.render("GAME OVER", True, "white")
+            text = font.render("GAME OVER", True, "White")
             text_rect = text.get_rect(center=(300, 175))
             window.blit(text, text_rect)
 
