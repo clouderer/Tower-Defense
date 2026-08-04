@@ -125,8 +125,8 @@ class App:
 
                 self.current_screen.handle_event(event)
 
-            self.current_screen.update(dt)
             self.current_screen.draw(self.window)
+            self.current_screen.update(dt)
 
             pygame.display.update() 
 

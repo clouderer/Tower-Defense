@@ -10,14 +10,12 @@ class TowerSlot:
         self.hovering = False
 
     def draw(self, window):
-        if self.occupied and self.hovering:
+        if  self.occupied and self.hovering:
             color = "Red"
         elif self.occupied and self.selected: 
             color = "White"
-        elif self.selected:
-            color = "Green"
         elif self.hovering:
-            color = "Yellow"
+            color = "Green"
         else:
             color = "White"
         

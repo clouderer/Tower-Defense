@@ -8,7 +8,7 @@ class Enemy:
         self.max_health = 50
         self.current_health = self.max_health
 
-        self.speed  = 100
+        self.speed  = 20
 
         self.reward = 10
 
@@ -16,11 +16,19 @@ class Enemy:
         self.current_waypoint = 1
 
         self.x_position, self.y_position = path[0]
-
+        self.distance_to_finish = self.calculate_distance_to_finish
 
         self.is_alive = True
         self.reached_end = False
 
+    def calculate_distance(self): 
+        target_x, target_y = self.path[self.current_waypoint]
+        
+        dx = target_x - self.x_position
+        dy = target_y - self.y_position
+        
+        return math.hypot(dx,dy)
+    
     #[TO DO] abstract this 
     def draw(self, window): 
         pygame.draw.circle(window, "purple", (self.x_position, self.y_position), 10)
@@ -29,20 +37,49 @@ class Enemy:
         if self.reached_end: 
             return 
     
-        target_x, target_y = self.path[self.current_waypoint]
+        self.move(dt)
+        self.distance_to_finish = self.calculate_distance_to_finish()
 
+    def move(self,dt):
+        target_x, target_y = self.path[self.current_waypoint]
+        
         dx = target_x - self.x_position
         dy = target_y - self.y_position
-
-        distance = math.sqrt(dx*dx + dy*dy)
+        
+        distance = self.calculate_distance()
         remaining_distance = dt * self.speed
-
+        
         if remaining_distance >= distance: 
             self.x_position, self.y_position = self.path[self.current_waypoint]
             self.current_waypoint += 1
         else: 
             self.x_position += (dx / distance) * remaining_distance 
             self.y_position += (dy / distance) * remaining_distance
-
+        
         if self.current_waypoint >= len(self.path):
             self.reached_end = True
+
+    def calculate_distance_to_finish(self): 
+        if self.current_waypoint >= len(self.path): 
+            return 0
+
+        remaining_distance = self.calculate_distance()
+
+        for i in range(self.current_waypoint, len(self.path) - 1):
+            x1,y1 = self.path[i]
+            x2,y2 = self.path[i + 1]
+
+            remaining_distance += math.hypot(x2 - x1, y2 - y1)
+
+        return int(remaining_distance)
+
+#__________________________________________________________________________________________
+
+    def draw_distance(self, window): 
+            font = pygame.font.Font("freesansbold.ttf", 10)
+            text = font.render("P: " + str(self.distance_to_finish), True, "Purple")
+            text_rect = text.get_rect(bottomright = (590,320))
+            window.blit(text, text_rect)
+            
+        
+
