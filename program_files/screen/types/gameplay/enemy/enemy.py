@@ -5,21 +5,22 @@ from abc import ABC, abstractmethod
 
 class Enemy: 
     def __init__(self, path): 
-        self.max_health = 50
-        self.current_health = self.max_health
+        self.max_health = 30
+        self.health = self.max_health
 
         self.speed  = 20
-
         self.reward = 10
 
         self.path = path
         self.current_waypoint = 1
 
         self.x_position, self.y_position = path[0]
-        self.distance_to_finish = self.calculate_distance_to_finish
+        self.distance_to_finish = self.calculate_distance_to_finish()
 
         self.is_alive = True
         self.reached_end = False
+
+        self.height = 15
 
     def calculate_distance(self): 
         target_x, target_y = self.path[self.current_waypoint]
@@ -28,10 +29,21 @@ class Enemy:
         dy = target_y - self.y_position
         
         return math.hypot(dx,dy)
+
+    def draw_health(self, window): 
+        health_red = pygame.Rect(0, 0, 20, 4)
+        health_red.center = (self.x_position, self.y_position - self.height)
+
+        health_green = pygame.Rect(0, 0, (self.health / self.max_health) * 20, 4)
+        health_green.topleft = health_red.topleft
+
+        pygame.draw.rect(window, "Red", health_red)
+        pygame.draw.rect(window, "Green", health_green)
     
     #[TO DO] abstract this 
     def draw(self, window): 
-        pygame.draw.circle(window, "purple", (self.x_position, self.y_position), 10)
+        pygame.draw.circle(window, "Orange", (self.x_position, self.y_position), 10)
+        self.draw_health(window)
 
     def update(self, dt): 
         if self.reached_end: 
