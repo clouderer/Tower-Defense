@@ -10,7 +10,7 @@ from .tower.tower import Tower
 During Gameplay when pressing P it opens up the pause menu 
 Fix the event handling when introducing new towers
 Figure out how to draw out the healthbar numbers properly
-
+Font Cleanup
 
 '''
 
@@ -19,6 +19,11 @@ class Gameplay(Screen):
     def __init__ (self, app, selected_map): 
         super().__init__(app)
         self.game_map = selected_map
+
+        self.wave = 1
+        self.wave_cleared = False
+        self.wave_cleared_delay = 1200
+        self.wave_cleared_start_time = pygame.time.get_ticks()
 
         self.health = self.MAX_HEALTH
 
@@ -29,17 +34,19 @@ class Gameplay(Screen):
         
         self.towers = []
         self.load_tower_slots()
-
         self.selected_tower_type = None
 
         self.enemies = []
+        self.enemies_spawned = 0
+        self.enemy_wave_size = 5
         self.enemy_spawn_time = pygame.time.get_ticks()
         self.enemy_spawn_delay = 3000
 
         self.game_over = False
 
-    def make_enemy(self): 
-        self.enemies.append(Enemy(self.game_map.enemy_path)) #[TO DO] Remove Enemy
+    def spawn_enemy(self): 
+        self.enemies.append(Enemy(self.game_map.enemy_path)) #[TO DO] Remove Enemyself.draw_healthbar(window)
+        self.enemies_spawned += 1
 
     def load_tower_slots(self): 
         self.tower_slots = [
@@ -129,17 +136,29 @@ class Gameplay(Screen):
         for tower in self.towers:
             tower.draw(window)
         
-        self.draw_selected_type(window)
         self.draw_money(window)
-        self.draw_sufficiency(window)
         self.draw_healthbar(window)
 
-    def draw_sufficiency(self, window): 
-        if self.insufficient_funds: 
-            font = pygame.font.Font("freesansbold.ttf", 10)
-            text = font.render ("INSUFFICIENT FUNDS", True, "Red")
-            text_rect = text.get_rect(bottomleft = (10,340))
-            window.blit(text, text_rect)
+        if self.insufficient_funds:
+            self.draw_sufficiency(window)
+
+        if self.selected_tower_type is not None:
+            self.draw_selected_type(window)
+
+        if self.wave_cleared: 
+            self.draw_wave_cleared(window)
+        
+    def draw_wave_cleared(self,window): 
+        font = pygame.font.Font("freesansbold.ttf", 40)
+        text = font.render ("WAVE CLEARED", True, "Green")
+        text_rect = text.get_rect(center = (300, 175))
+        window.blit(text, text_rect)
+
+    def draw_sufficiency(self, window):  
+        font = pygame.font.Font("freesansbold.ttf", 10)
+        text = font.render ("INSUFFICIENT FUNDS", True, "Red")
+        text_rect = text.get_rect(bottomleft = (10,340))
+        window.blit(text, text_rect)
 
     def draw_money(self, window): 
         font = pygame.font.Font("freesansbold.ttf", 10)
@@ -147,12 +166,11 @@ class Gameplay(Screen):
         text_rect = text.get_rect(bottomright = (590,320))
         window.blit(text, text_rect)
 
-    def draw_selected_type(self, window): 
-        if self.selected_tower_type != None: 
-            font = pygame.font.Font("freesansbold.ttf", 10)
-            text = font.render ("SELECTED: " + self.selected_tower_type, True, "White")
-            text_rect = text.get_rect(bottomleft = (10,340))
-            window.blit(text, text_rect)
+    def draw_selected_type(self, window):  
+        font = pygame.font.Font("freesansbold.ttf", 10)
+        text = font.render ("SELECTED: " + self.selected_tower_type, True, "White")
+        text_rect = text.get_rect(bottomleft = (10,340))
+        window.blit(text, text_rect)
 
     def draw_healthbar(self, window): 
         healthbar_outline = pygame.Rect(0, 0, 100, 10)
@@ -174,9 +192,9 @@ class Gameplay(Screen):
     def update(self, dt):
         current_time = pygame.time.get_ticks()
 
-        if len(self.enemies) < 3: 
+        if self.enemies_spawned < self.enemy_wave_size: 
             if current_time - self.enemy_spawn_time >= self.enemy_spawn_delay: 
-                self.make_enemy()
+                self.spawn_enemy()
                 self.enemy_spawn_time = current_time
 
         for enemy in self.enemies:
@@ -200,6 +218,21 @@ class Gameplay(Screen):
 
         if self.health <= 0: 
             self.game_over = True
+
+        if (self.enemies_spawned == self.enemy_wave_size and
+            len(self.enemies) == 0 and
+            not self.wave_cleared): 
+            self.wave_cleared = True
+            self.wave_cleared_start_time = pygame.time.get_ticks()
+
+        if (self.wave_cleared and 
+            current_time - self.wave_cleared_start_time >= self.wave_cleared_delay):
+            self.wave_cleared = False
+
+            self.wave += 1 
+            self.enemies_spawned = 0
+            self.enemy_spawn_time = current_time
+
 #_________________________________________________________________
 
     # def draw_path(self,window):
