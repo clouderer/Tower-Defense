@@ -11,6 +11,7 @@ During Gameplay when pressing P it opens up the pause menu
 Fix the event handling when introducing new towers
 Figure out how to draw out the healthbar numbers properly
 Font Cleanup
+Probably cleanup the draw function
 
 '''
 
@@ -27,6 +28,8 @@ class Gameplay(Screen):
 
         self.health = self.MAX_HEALTH
 
+        self.game_over = False
+
         self.money = 200
         self.insufficient_funds = False
         self.insufficient_funds_delay = 700
@@ -42,8 +45,6 @@ class Gameplay(Screen):
         self.enemy_spawn_time = pygame.time.get_ticks()
         self.enemy_spawn_delay = 3000
 
-        self.game_over = False
-
     def spawn_enemy(self): 
         self.enemies.append(Enemy(self.game_map.enemy_path)) #[TO DO] Remove Enemyself.draw_healthbar(window)
         self.enemies_spawned += 1
@@ -54,6 +55,9 @@ class Gameplay(Screen):
             for position in self.game_map.tower_positions]
 
     def handle_event(self, event):
+        if self.game_over: 
+            return 
+        
         if event.type == pygame.MOUSEBUTTONDOWN and self.selected_tower_type != None: 
             if event.button == 1:
 
@@ -139,14 +143,22 @@ class Gameplay(Screen):
         self.draw_money(window)
         self.draw_healthbar(window)
 
-        if self.insufficient_funds:
+        if self.insufficient_funds and not self.wave_cleared:
             self.draw_sufficiency(window)
 
-        if self.selected_tower_type is not None:
+        if self.selected_tower_type is not None and not self.wave_cleared:
             self.draw_selected_type(window)
 
-        if self.wave_cleared: 
+        if self.game_over: 
+            self.draw_game_over(window)
+        elif self.wave_cleared: 
             self.draw_wave_cleared(window)
+
+    def draw_game_over(self,window): 
+        font = pygame.font.Font("freesansbold.ttf", 40)
+        text = font.render ("GAME OVER", True, "Red")
+        text_rect = text.get_rect(center = (300, 175))
+        window.blit(text, text_rect)         
         
     def draw_wave_cleared(self,window): 
         font = pygame.font.Font("freesansbold.ttf", 40)
@@ -190,6 +202,9 @@ class Gameplay(Screen):
 #_____________
 
     def update(self, dt):
+        if self.game_over:
+            return 
+        
         current_time = pygame.time.get_ticks()
 
         if self.enemies_spawned < self.enemy_wave_size: 
@@ -217,7 +232,11 @@ class Gameplay(Screen):
                 self.insufficient_funds = False
 
         if self.health <= 0: 
+            self.health = 0
             self.game_over = True
+            self.wave_cleared = False 
+            self.enemies = []
+            return
 
         if (self.enemies_spawned == self.enemy_wave_size and
             len(self.enemies) == 0 and
