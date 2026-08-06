@@ -22,9 +22,12 @@ class Gameplay(Screen):
         self.game_map = selected_map
 
         self.wave = 1
+        self.wave_active = False
         self.wave_cleared = False
         self.wave_cleared_delay = 1200
         self.wave_cleared_start_time = pygame.time.get_ticks()
+        
+        self.next_wave_ready = True
 
         self.health = self.MAX_HEALTH
 
@@ -42,7 +45,7 @@ class Gameplay(Screen):
         self.enemies = []
         self.enemies_spawned = 0
         self.enemy_wave_size = 5
-        self.enemy_spawn_time = pygame.time.get_ticks()
+        self.enemy_spawn_time = 0
         self.enemy_spawn_delay = 3000
 
     def spawn_enemy(self): 
@@ -58,7 +61,8 @@ class Gameplay(Screen):
         if self.game_over: 
             return 
         
-        if event.type == pygame.MOUSEBUTTONDOWN and self.selected_tower_type != None: 
+        if (event.type == pygame.MOUSEBUTTONDOWN and 
+            self.selected_tower_type != None): 
             if event.button == 1:
 
                 clicked_slot = None
@@ -70,12 +74,11 @@ class Gameplay(Screen):
                         break
 
                 if (clicked_slot is not None and
-                    not slot.occupied and
-                    slot.selected): 
-                    slot.occupied = True
+                    not clicked_slot.occupied): 
+                    clicked_slot.occupied = True
 
                     self.money -= Tower.COST
-                    self.towers.append(Tower(slot))
+                    self.towers.append(self.selected_tower_type(clicked_slot))
                     self.selected_tower_type = None
 
                     self.cancel_tower_placement()
@@ -90,7 +93,7 @@ class Gameplay(Screen):
             if event.key == pygame.K_1 or event.key == pygame.K_KP1: 
                 if self.money >= Tower.COST: 
                     self.insufficient_funds = False
-                    self.selected_tower_type = Tower.NAME
+                    self.selected_tower_type = Tower
                 else: 
                     self.insufficient_funds = True
                     self.insufficient_funds_start_time = pygame.time.get_ticks()
@@ -106,6 +109,12 @@ class Gameplay(Screen):
                 self.cancel_tower_placement()
             elif event.key == pygame.K_p: 
                 pass #[TO DO] Pause
+            elif (event.key == pygame.K_SPACE and 
+                self.next_wave_ready): 
+                    self.wave_active = True
+                    self.next_wave_ready = False
+                    self.enemy_spawn_time = pygame.time.get_ticks()
+
         """
         [TO DO]: 
         EXPECTABLE BEHAVIOR 
@@ -153,6 +162,14 @@ class Gameplay(Screen):
             self.draw_game_over(window)
         elif self.wave_cleared: 
             self.draw_wave_cleared(window)
+        elif self.next_wave_ready: 
+            self.draw_wave_ready(window)
+
+    def draw_wave_ready(self,window): 
+        font = pygame.font.Font("freesansbold.ttf", 13)
+        text = font.render ("Press [Space] to start wave " + str(self.wave), True, "Yellow")
+        text_rect = text.get_rect(center = (300, 335))
+        window.blit(text, text_rect) 
 
     def draw_game_over(self,window): 
         font = pygame.font.Font("freesansbold.ttf", 40)
@@ -180,7 +197,7 @@ class Gameplay(Screen):
 
     def draw_selected_type(self, window):  
         font = pygame.font.Font("freesansbold.ttf", 10)
-        text = font.render ("SELECTED: " + self.selected_tower_type, True, "White")
+        text = font.render ("SELECTED: " + self.selected_tower_type.NAME, True, "White")
         text_rect = text.get_rect(bottomleft = (10,340))
         window.blit(text, text_rect)
 
@@ -207,7 +224,8 @@ class Gameplay(Screen):
         
         current_time = pygame.time.get_ticks()
 
-        if self.enemies_spawned < self.enemy_wave_size: 
+        if (self.enemies_spawned < self.enemy_wave_size and 
+            self.wave_active): 
             if current_time - self.enemy_spawn_time >= self.enemy_spawn_delay: 
                 self.spawn_enemy()
                 self.enemy_spawn_time = current_time
@@ -241,12 +259,14 @@ class Gameplay(Screen):
         if (self.enemies_spawned == self.enemy_wave_size and
             len(self.enemies) == 0 and
             not self.wave_cleared): 
+            self.wave_active = False
             self.wave_cleared = True
             self.wave_cleared_start_time = pygame.time.get_ticks()
 
         if (self.wave_cleared and 
             current_time - self.wave_cleared_start_time >= self.wave_cleared_delay):
             self.wave_cleared = False
+            self.next_wave_ready = True
 
             self.wave += 1 
             self.enemies_spawned = 0
