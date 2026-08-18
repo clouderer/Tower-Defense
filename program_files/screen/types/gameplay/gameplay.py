@@ -6,6 +6,9 @@ from ....maps.game_map import GameMap
 from .tower_slot.tower_slot import TowerSlot
 from .tower.tower import Tower
 
+
+from dataclasses import dataclass
+from typing import ClassVar         # Like static in a class - meaning all classes share this attribute
 '''
 During Gameplay when pressing P it opens up the pause menu 
 Fix the event handling when introducing new towers
@@ -14,6 +17,26 @@ Font Cleanup
 Probably cleanup the draw function
 
 '''
+#_____UNUSED____
+
+''' Helping Structure for Wave attributes'''
+@dataclass
+class WaveState: 
+    CLEARED_DELAY: ClassVar[int] = 1200
+
+    round: int = 1 
+    active: bool = False 
+    cleared: bool = False
+    cleared_start_time: int = None
+    
+    next_ready = True
+
+    max_enemy_count: int = 5
+
+@dataclass 
+class EnemyState: 
+    enemies: list[Enemy]
+
 
 class Gameplay(Screen): 
     MAX_HEALTH = 100
@@ -21,13 +44,7 @@ class Gameplay(Screen):
         super().__init__(app)
         self.game_map = selected_map
 
-        self.wave = 1
-        self.wave_active = False
-        self.wave_cleared = False
-        self.wave_cleared_delay = 1200
-        self.wave_cleared_start_time = pygame.time.get_ticks()
-        
-        self.next_wave_ready = True
+        self.wave_state = WaveState()
 
         self.health = self.MAX_HEALTH
 
@@ -44,7 +61,6 @@ class Gameplay(Screen):
 
         self.enemies = []
         self.enemies_spawned = 0
-        self.enemy_wave_size = 5
         self.enemy_spawn_time = 0
         self.enemy_spawn_delay = 3000
 
@@ -59,7 +75,9 @@ class Gameplay(Screen):
 
     def handle_event(self, event):
         if self.game_over: 
-            return 
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_r: 
+                self.app.change_screen(Gameplay(self.app, self.game_map))
+            return
         
         if (event.type == pygame.MOUSEBUTTONDOWN and 
             self.selected_tower_type != None): 
@@ -110,9 +128,9 @@ class Gameplay(Screen):
             elif event.key == pygame.K_p: 
                 pass #[TO DO] Pause
             elif (event.key == pygame.K_SPACE and 
-                self.next_wave_ready): 
-                    self.wave_active = True
-                    self.next_wave_ready = False
+                self.wave_state.next_ready): 
+                    self.wave_state.active = True
+                    self.wave_state.next_ready = False
                     self.enemy_spawn_time = pygame.time.get_ticks()
 
         """
@@ -152,22 +170,22 @@ class Gameplay(Screen):
         self.draw_money(window)
         self.draw_healthbar(window)
 
-        if self.insufficient_funds and not self.wave_cleared:
+        if self.insufficient_funds and not self.wave_state.cleared:
             self.draw_sufficiency(window)
 
-        if self.selected_tower_type is not None and not self.wave_cleared:
+        if self.selected_tower_type is not None and not self.wave_state.cleared:
             self.draw_selected_type(window)
 
         if self.game_over: 
             self.draw_game_over(window)
-        elif self.wave_cleared: 
+        elif self.wave_state.cleared: 
             self.draw_wave_cleared(window)
-        elif self.next_wave_ready: 
+        elif self.wave_state.next_ready: 
             self.draw_wave_ready(window)
 
     def draw_wave_ready(self,window): 
         font = pygame.font.Font("freesansbold.ttf", 13)
-        text = font.render ("Press [Space] to start wave " + str(self.wave), True, "Yellow")
+        text = font.render ("Press [Space] to start wave " + str(self.wave_state.round), True, "Yellow")
         text_rect = text.get_rect(center = (300, 335))
         window.blit(text, text_rect) 
 
@@ -176,10 +194,15 @@ class Gameplay(Screen):
         text = font.render ("GAME OVER", True, "Red")
         text_rect = text.get_rect(center = (300, 175))
         window.blit(text, text_rect)         
+
+        font = pygame.font.Font("freesansbold.ttf", 13)
+        text = font.render ("Press [R] to restart", True, "Yellow")
+        text_rect = text.get_rect(center = (300,210))
+        window.blit(text, text_rect)
         
     def draw_wave_cleared(self,window): 
         font = pygame.font.Font("freesansbold.ttf", 40)
-        text = font.render ("WAVE CLEARED", True, "Green")
+        text = font.render ("WAVE " + str(self.wave_state.round) + " CLEARED", True, "Green")
         text_rect = text.get_rect(center = (300, 175))
         window.blit(text, text_rect)
 
@@ -224,8 +247,8 @@ class Gameplay(Screen):
         
         current_time = pygame.time.get_ticks()
 
-        if (self.enemies_spawned < self.enemy_wave_size and 
-            self.wave_active): 
+        if (self.enemies_spawned < self.wave_state.max_enemy_count and 
+            self.wave_state.active): 
             if current_time - self.enemy_spawn_time >= self.enemy_spawn_delay: 
                 self.spawn_enemy()
                 self.enemy_spawn_time = current_time
@@ -252,23 +275,23 @@ class Gameplay(Screen):
         if self.health <= 0: 
             self.health = 0
             self.game_over = True
-            self.wave_cleared = False 
+            self.wave_state.cleared = False 
             self.enemies = []
             return
 
-        if (self.enemies_spawned == self.enemy_wave_size and
+        if (self.enemies_spawned == self.wave_state.max_enemy_count and
             len(self.enemies) == 0 and
-            not self.wave_cleared): 
-            self.wave_active = False
-            self.wave_cleared = True
-            self.wave_cleared_start_time = pygame.time.get_ticks()
+            not self.wave_state.cleared): 
+            self.wave_state.active = False
+            self.wave_state.cleared = True
+            self.wave_state.cleared_start_time = pygame.time.get_ticks()
 
-        if (self.wave_cleared and 
-            current_time - self.wave_cleared_start_time >= self.wave_cleared_delay):
-            self.wave_cleared = False
-            self.next_wave_ready = True
+        if (self.wave_state.cleared and 
+            current_time - self.wave_state.cleared_start_time >= self.wave_state.CLEARED_DELAY):
+            self.wave_state.cleared = False
+            self.wave_state.next_ready = True
 
-            self.wave += 1 
+            self.wave_state.round += 1 
             self.enemies_spawned = 0
             self.enemy_spawn_time = current_time
 
