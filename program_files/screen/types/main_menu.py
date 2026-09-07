@@ -1,4 +1,5 @@
 from ..screen import Screen
 
-class MainMenu(Screen): 
+
+class MainMenu(Screen):
     pass

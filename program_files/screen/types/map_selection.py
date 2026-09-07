@@ -1,4 +1,5 @@
 from ..screen import Screen
 
-class MapSelection(Screen): 
+
+class MapSelection(Screen):
     pass

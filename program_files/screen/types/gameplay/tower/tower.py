@@ -1,11 +1,14 @@
-import pygame
 import math
 
 from abc import ABC, abstractmethod
+
+import pygame
+
 from ..tower_slot.tower_slot import TowerSlot
 from ..enemy.enemy import Enemy
 
-class Tower: 
+
+class Tower:
     NAME = "BASIC TOWER"
     COST = 80
 
@@ -13,7 +16,7 @@ class Tower:
         self.rect = pygame.Rect(0, 0, 20, 20)
         self.rect.center = tower_slot.rect.center
 
-        self.range  = 70
+        self.range = 70
         self.damage = 3
         self.attack_cooldown = 500
         self.last_attack_time = pygame.time.get_ticks() 
@@ -53,15 +56,16 @@ class Tower:
         return time_since_last_attack >= self.attack_cooldown
     
     def attack(self, current_time): 
-        if (self.target is not None and 
-            current_time - self.last_attack_time >= self.attack_cooldown): 
-                self.target.health -= self.damage
-                self.last_attack_time = current_time
+        if (
+            self.target is not None
+            and current_time - self.last_attack_time >= self.attack_cooldown
+        ):
+            self.target.health -= self.damage
+            self.last_attack_time = current_time
 
-                if self.target.health <= 0: 
-                    self.target.is_alive = False
-                    return self.target.reward
-
+            if self.target.health <= 0:
+                self.target.is_alive = False
+                return self.target.reward
         return 0
         
 
