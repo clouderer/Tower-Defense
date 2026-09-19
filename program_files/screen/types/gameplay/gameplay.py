@@ -92,9 +92,17 @@ class Gameplay(Screen):
             font_size=40,
         )
 
+        self.restart_text = TextObject(
+            text="Press [R] to restart",
+            color="Yellow",
+            position=(300, 210),
+            font_size=13,
+        )
+
         self.money_text = TextObject(
-            text="P: " + str(self.money),
+            text="⌁: " + str(self.money),
             color="White",
+            anchor="bottomright",
             position=(590, 320),
             font_size=10,
         )
@@ -102,6 +110,7 @@ class Gameplay(Screen):
         self.sufficiency_text = TextObject(
             text="INSUFFICIENT FUNDS",
             color="Red",
+            anchor="bottomleft",
             position=(10, 340),
             font_size=10,
         )
@@ -109,14 +118,8 @@ class Gameplay(Screen):
         self.selected_tower_type_text = TextObject(
             text="SELECTED: " + self.selected_tower_type.NAME if self.selected_tower_type else "",
             color="White",
+            anchor="bottomleft",
             position=(10, 340),
-            font_size=10,
-        )
-
-        self.health_text = TextObject(
-            text="♥ " + str(self.health),
-            color="Black",
-            position=(590, 340),
             font_size=10,
         )
 
@@ -233,7 +236,7 @@ class Gameplay(Screen):
         self.draw_healthbar(window)
 
         if self.insufficient_funds and not self.wave_state.cleared:
-            self.draw_sufficiency(window)
+            self.sufficiency_text.draw(window)
 
         if self.selected_tower_type is not None and not self.wave_state.cleared:
             self.draw_selected_type(window)
@@ -246,48 +249,24 @@ class Gameplay(Screen):
             self.draw_wave_ready(window)
 
     def draw_wave_ready(self, window):
-        TextObject(
-            text="Press [Space] to start wave " + str(self.wave_state.round),
-            color="Yellow",
-            position=(300, 335),
-        ).draw(window)
+        self.wave_ready_text.text = "Press [Space] to start wave " + str(self.wave_state.round)
+        self.wave_ready_text.draw(window)
 
     def draw_game_over(self, window):
-        font = pygame.font.Font("freesansbold.ttf", 40)
-        text = font.render("GAME OVER", True, "Red")
-        text_rect = text.get_rect(center=(300, 175))
-        window.blit(text, text_rect)
-
-        font = pygame.font.Font("freesansbold.ttf", 13)
-        text = font.render("Press [R] to restart", True, "Yellow")
-        text_rect = text.get_rect(center=(300, 210))
-        window.blit(text, text_rect)
+        self.game_over_text.draw(window)
+        self.restart_text.draw(window)
 
     def draw_wave_cleared(self, window):
-        font = pygame.font.Font("freesansbold.ttf", 40)
-        text = font.render(
-            "WAVE " + str(self.wave_state.round) + " CLEARED", True, "Green"
-        )
-        text_rect = text.get_rect(center=(300, 175))
-        window.blit(text, text_rect)
-
-    def draw_sufficiency(self, window):
-        font = pygame.font.Font("freesansbold.ttf", 10)
-        text = font.render("INSUFFICIENT FUNDS", True, "Red")
-        text_rect = text.get_rect(bottomleft=(10, 340))
-        window.blit(text, text_rect)
+        self.wave_cleared_text.text = "WAVE " + str(self.wave_state.round) + " CLEARED"
+        self.wave_cleared_text.draw(window)
 
     def draw_money(self, window):
-        font = pygame.font.Font("freesansbold.ttf", 10)
-        text = font.render("P: " + str(self.money), True, "White")
-        text_rect = text.get_rect(bottomright=(590, 320))
-        window.blit(text, text_rect)
+        self.money_text.text = "POWER: " + str(self.money)
+        self.money_text.draw(window)
 
     def draw_selected_type(self, window):
-        font = pygame.font.Font("freesansbold.ttf", 10)
-        text = font.render("SELECTED: " + self.selected_tower_type.NAME, True, "White")
-        text_rect = text.get_rect(bottomleft=(10, 340))
-        window.blit(text, text_rect)
+        self.selected_tower_type_text.text = "SELECTED: " + self.selected_tower_type.NAME
+        self.selected_tower_type_text.draw(window)
 
     def draw_healthbar(self, window):
         healthbar_outline = pygame.Rect(0, 0, 100, 10)
@@ -298,11 +277,6 @@ class Gameplay(Screen):
 
         pygame.draw.rect(window, "Yellow", health)
         pygame.draw.rect(window, "White", healthbar_outline, 1)
-
-        font = pygame.font.Font("freesansbold.ttf", 10)
-        text = font.render("♥ " + str(self.health), True, "Black")
-        text_rect = text.get_rect(center=healthbar_outline.center)
-        window.blit(text, text_rect)
 
 # _____________
     def update_enemy_spawn(self, current_time):
