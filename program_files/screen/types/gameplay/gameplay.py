@@ -70,54 +70,54 @@ class Gameplay(Screen):
 
         # Drawable Text Objects
         self.wave_ready_text = TextObject(
-            text="Press [Space] to start wave " + str(self.wave_state.round),
-            color="Yellow",
-            position=(300, 335),
+            text = "Press [Space] to start wave " + str(self.wave_state.round),
+            color = "Yellow",
+            position = (300, 335),
         )
 
         self.wave_cleared_text = TextObject(
-            text="WAVE " + str(self.wave_state.round) + " CLEARED",
-            color="Green",
-            position=(300, 175),
-            font_size=40,
+            text = "WAVE " + str(self.wave_state.round) + " CLEARED",
+            color = "Green",
+            position = (300, 175),
+            font_size = 40,
         )
 
         self.game_over_text = TextObject(
-            text="GAME OVER",
-            color="Red",
-            position=(300, 175),
-            font_size=40,
+            text = "GAME OVER",
+            color = "Red",
+            position = (300, 175),
+            font_size = 40,
         )
 
         self.restart_text = TextObject(
-            text="Press [R] to restart",
-            color="Yellow",
-            position=(300, 210),
-            font_size=13,
+            text = "Press [R] to restart",
+            color = "Yellow",
+            position = (300, 210),
+            font_size = 13,
         )
 
         self.money_text = TextObject(
-            text="⌁: " + str(self.money),
-            color="White",
-            anchor="bottomright",
-            position=(590, 320),
-            font_size=10,
+            text = "POWER: " + str(self.money),
+            color = "White",
+            anchor = "bottomright",
+            position = (590, 320),
+            font_size = 10,
         )
 
         self.sufficiency_text = TextObject(
-            text="INSUFFICIENT FUNDS",
-            color="Red",
-            anchor="bottomleft",
-            position=(10, 340),
-            font_size=10,
+            text = "INSUFFICIENT FUNDS",
+            color = "Red",
+            anchor = "bottomleft",
+            position = (10, 340),
+            font_size = 10,
         )
 
         self.selected_tower_type_text = TextObject(
-            text="SELECTED: " + self.selected_tower_type.NAME if self.selected_tower_type else "",
-            color="White",
-            anchor="bottomleft",
-            position=(10, 340),
-            font_size=10,
+            text = "SELECTED: " + self.selected_tower_type.NAME if self.selected_tower_type else "",
+            color = "White",
+            anchor = "bottomleft",
+            position = (10, 340),
+            font_size = 10,
         )
 
     def spawn_enemy(self):
@@ -191,7 +191,7 @@ class Gameplay(Screen):
             elif event.key == pygame.K_SPACE and self.wave_state.next_ready:
                 self.wave_state.active = True
                 self.wave_state.next_ready = False
-                self.enemy_spawn_time = pygame.time.get_ticks()
+                self.enemy_state.spawn_time = pygame.time.get_ticks()
 
         """
         [TO DO]: 
