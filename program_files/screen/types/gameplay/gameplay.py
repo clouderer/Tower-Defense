@@ -184,7 +184,7 @@ class Gameplay(Screen):
             elif event.key == pygame.K_4 or event.key == pygame.K_KP4:
                 pass  # [TO DO]
 
-            elif event.key == pygame.K_ESCAPE:
+            elif event.key == pygame.K_q:
                 self.cancel_tower_placement()
             elif event.key == pygame.K_p:
                 pass  # [TO DO] Pause
@@ -310,7 +310,7 @@ class Gameplay(Screen):
                 enemy.is_alive = False
 
         for tower in self.towers:
-            tower.find_target(self.enemies)
+            tower.find_target(self.enemy_state.enemies)
             self.money += tower.attack(current_time)
 
         self.enemy_state.enemies = [
