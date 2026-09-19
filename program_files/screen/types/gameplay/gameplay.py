@@ -66,10 +66,7 @@ class Gameplay(Screen):
         self.load_tower_slots()
         self.selected_tower_type = None
 
-        self.enemies = []
-        self.enemies_spawned = 0
-        self.enemy_spawn_time = 0
-        self.enemy_spawn_delay = 3000
+        self.enemy_state = EnemyState()
 
         # Drawable Text Objects
         self.wave_ready_text = TextObject(
@@ -124,10 +121,10 @@ class Gameplay(Screen):
         )
 
     def spawn_enemy(self):
-        self.enemies.append(
+        self.enemy_state.enemies.append(
             Enemy(self.game_map.enemy_path)
-        )  # [TO DO] Remove Enemyself.draw_healthbar(window)
-        self.enemies_spawned += 1
+        )
+        self.enemy_state.count += 1
 
     def load_tower_slots(self):
         self.tower_slots = [
@@ -225,7 +222,7 @@ class Gameplay(Screen):
         for slot in self.tower_slots:
             slot.draw(window)
 
-        for enemy in self.enemies:
+        for enemy in self.enemy_state.enemies:
             if not enemy.reached_end:
                 enemy.draw(window)
 
@@ -283,14 +280,14 @@ class Gameplay(Screen):
         if not self.wave_state.active:
             return
 
-        if self.enemies_spawned >= self.wave_state.max_enemy_count:
+        if self.enemy_state.count >= self.wave_state.max_enemy_count:
             return
 
-        if current_time - self.enemy_spawn_time < self.enemy_spawn_delay:
+        if current_time - self.enemy_state.spawn_time < self.enemy_state.SPAWN_DELAY:
             return
 
         self.spawn_enemy()
-        self.enemy_spawn_time = current_time
+        self.enemy_state.spawn_time = current_time
 
     def update(self, dt):
         if self.game_over:
@@ -299,14 +296,14 @@ class Gameplay(Screen):
         current_time = pygame.time.get_ticks()
 
         if (
-            self.enemies_spawned < self.wave_state.max_enemy_count
+            self.enemy_state.count < self.wave_state.max_enemy_count
             and self.wave_state.active
         ):
-            if current_time - self.enemy_spawn_time >= self.enemy_spawn_delay:
+            if current_time - self.enemy_state.spawn_time >= self.enemy_state.SPAWN_DELAY:
                 self.spawn_enemy()
-                self.enemy_spawn_time = current_time
+                self.enemy_state.spawn_time = current_time
 
-        for enemy in self.enemies:
+        for enemy in self.enemy_state.enemies:
             enemy.update(dt)
             if enemy.reached_end and enemy.is_alive:
                 self.health -= enemy.health
@@ -316,8 +313,8 @@ class Gameplay(Screen):
             tower.find_target(self.enemies)
             self.money += tower.attack(current_time)
 
-        self.enemies = [
-            enemy for enemy in self.enemies
+        self.enemy_state.enemies = [
+            enemy for enemy in self.enemy_state.enemies
             if enemy.is_alive
         ]
 
@@ -332,12 +329,12 @@ class Gameplay(Screen):
             self.health = 0
             self.game_over = True
             self.wave_state.cleared = False
-            self.enemies = []
+            self.enemy_state.enemies = []
             return
 
         if (
-            self.enemies_spawned == self.wave_state.max_enemy_count
-            and len(self.enemies) == 0
+            self.enemy_state.count == self.wave_state.max_enemy_count
+            and len(self.enemy_state.enemies) == 0
             and not self.wave_state.cleared
         ):
             self.wave_state.active = False
@@ -353,8 +350,8 @@ class Gameplay(Screen):
             self.wave_state.next_ready = True
 
             self.wave_state.round += 1
-            self.enemies_spawned = 0
-            self.enemy_spawn_time = current_time
+            self.enemy_state.count = 0
+            self.enemy_state.spawn_time = current_time
 
 # __________________________________________________________________
 
