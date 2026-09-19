@@ -1,9 +1,10 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import ClassVar  # Shared by all classes, like a static attribute.
 
 import pygame
 
 from ....maps.game_map import GameMap
+from ....ui.text_object import TextObject
 from ...screen import Screen
 from .enemy.enemy import Enemy
 from .tower.tower import Tower
@@ -21,7 +22,6 @@ Probably cleanup the draw function
 
 '''Helping Structure for Wave attributes'''
 
-
 @dataclass
 class WaveState:
     CLEARED_DELAY: ClassVar[int] = 1200
@@ -35,10 +35,13 @@ class WaveState:
 
     max_enemy_count: int = 5
 
+# [TO DO] Apply the enemy state to the gameplay class, and make it so that the enemies are spawned from the enemy state instead of the gameplay class.
 @dataclass
 class EnemyState:
-    enemies: list[Enemy]
-
+    enemies: list[Enemy] = field(default_factory=list)
+    count: int = 0
+    spawn_time: int = 0
+    spawn_delay: int = 3000
 
 class Gameplay(Screen):
     MAX_HEALTH = 100
@@ -164,6 +167,8 @@ class Gameplay(Screen):
     def draw(self, window):
         window.blit(self.game_map.image, (0, 0))
 
+        # [TO DO] Create a list for all the objects that always need to be drawn, like the tower slots and towers, and draw them in a loop.
+
         for slot in self.tower_slots:
             slot.draw(window)
 
@@ -191,14 +196,11 @@ class Gameplay(Screen):
             self.draw_wave_ready(window)
 
     def draw_wave_ready(self, window):
-        font = pygame.font.Font("freesansbold.ttf", 13)
-        text = font.render(
-            "Press [Space] to start wave " + str(self.wave_state.round),
-            True,
-            "Yellow",
-        )
-        text_rect = text.get_rect(center=(300, 335))
-        window.blit(text, text_rect)
+        TextObject(
+            text="Press [Space] to start wave " + str(self.wave_state.round),
+            color="Yellow",
+            position=(300, 335),
+        ).draw(window)
 
     def draw_game_over(self, window):
         font = pygame.font.Font("freesansbold.ttf", 40)
@@ -253,6 +255,18 @@ class Gameplay(Screen):
         window.blit(text, text_rect)
 
 # _____________
+    def update_enemy_spawn(self, current_time):
+        if not self.wave_state.active:
+            return
+
+        if self.enemies_spawned >= self.wave_state.max_enemy_count:
+            return
+
+        if current_time - self.enemy_spawn_time < self.enemy_spawn_delay:
+            return
+
+        self.spawn_enemy()
+        self.enemy_spawn_time = current_time
 
     def update(self, dt):
         if self.game_over:
