@@ -38,10 +38,11 @@ class WaveState:
 # [TO DO] Apply the enemy state to the gameplay class, and make it so that the enemies are spawned from the enemy state instead of the gameplay class.
 @dataclass
 class EnemyState:
+    SPAWN_DELAY: ClassVar[int] = 3000
+
     enemies: list[Enemy] = field(default_factory=list)
     count: int = 0
     spawn_time: int = 0
-    spawn_delay: int = 3000
 
 class Gameplay(Screen):
     MAX_HEALTH = 100
@@ -69,6 +70,55 @@ class Gameplay(Screen):
         self.enemies_spawned = 0
         self.enemy_spawn_time = 0
         self.enemy_spawn_delay = 3000
+
+        # Drawable Text Objects
+        self.wave_ready_text = TextObject(
+            text="Press [Space] to start wave " + str(self.wave_state.round),
+            color="Yellow",
+            position=(300, 335),
+        )
+
+        self.wave_cleared_text = TextObject(
+            text="WAVE " + str(self.wave_state.round) + " CLEARED",
+            color="Green",
+            position=(300, 175),
+            font_size=40,
+        )
+
+        self.game_over_text = TextObject(
+            text="GAME OVER",
+            color="Red",
+            position=(300, 175),
+            font_size=40,
+        )
+
+        self.money_text = TextObject(
+            text="P: " + str(self.money),
+            color="White",
+            position=(590, 320),
+            font_size=10,
+        )
+
+        self.sufficiency_text = TextObject(
+            text="INSUFFICIENT FUNDS",
+            color="Red",
+            position=(10, 340),
+            font_size=10,
+        )
+
+        self.selected_tower_type_text = TextObject(
+            text="SELECTED: " + self.selected_tower_type.NAME if self.selected_tower_type else "",
+            color="White",
+            position=(10, 340),
+            font_size=10,
+        )
+
+        self.health_text = TextObject(
+            text="♥ " + str(self.health),
+            color="Black",
+            position=(590, 340),
+            font_size=10,
+        )
 
     def spawn_enemy(self):
         self.enemies.append(
