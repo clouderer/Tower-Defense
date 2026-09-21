@@ -14,10 +14,10 @@ class TowerSlot:
         if self.occupied and self.hovering:
             color = "Red"
         elif self.occupied and self.selected:
-            color = "White"
+            color = "LightSteelBlue"
         elif self.hovering:
             color = "Green"
         else:
-            color = "White"
+            color = "LightSteelBlue"
 
         pygame.draw.rect(window, color, self.rect)

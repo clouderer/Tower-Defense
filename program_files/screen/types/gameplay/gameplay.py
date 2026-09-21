@@ -15,13 +15,13 @@ During Gameplay when pressing P it opens up the pause menu
 Fix the event handling when introducing new towers
 Figure out how to draw out the healthbar numbers properly
 Font Cleanup
-Probably cleanup the draw function
-
 '''
-'''Helping Structure for Wave attributes'''
 
 @dataclass
 class WaveState:
+    """
+    Class to manage the state of the waves in the game.
+    """
     CLEARED_DELAY: ClassVar[int] = 1200
 
     round: int = 1
@@ -32,9 +32,11 @@ class WaveState:
     next_ready = True
 
     max_enemy_count: int = 5
-    
+
 @dataclass
 class EnemyState:
+    """
+    Class to manage the state of the enemies in the game."""
     SPAWN_DELAY: ClassVar[int] = 3000
 
     enemies: list[Enemy] = field(default_factory=list)
@@ -56,6 +58,21 @@ class Gameplay(Screen):
     MAX_HEALTH = 100
     START_MONEY = 200
     INSUFFICIENT_FUNDS_DELAY = 700
+
+    # [TO DO] Make the text objects into static text objects that are shared by all instances of the gameplay class
+    GAME_OVER_TEXT = TextObject(
+        text = "GAME OVER",
+        color = "Red",
+        position = (300, 175),
+        font_size = 40,
+    )
+
+    RESTART_TEXT = TextObject(
+        text = "Press [R] to restart",
+        color = "Yellow",
+        position = (300, 210),
+        font_size = 13,
+    )
 
     def __init__(self, app, selected_map):
         super().__init__(app)
@@ -88,20 +105,6 @@ class Gameplay(Screen):
             color = "Green",
             position = (300, 175),
             font_size = 40,
-        )
-
-        self.game_over_text = TextObject(
-            text = "GAME OVER",
-            color = "Red",
-            position = (300, 175),
-            font_size = 40,
-        )
-
-        self.restart_text = TextObject(
-            text = "Press [R] to restart",
-            color = "Yellow",
-            position = (300, 210),
-            font_size = 13,
         )
 
         self.money_text = TextObject(
@@ -258,8 +261,8 @@ class Gameplay(Screen):
         self.wave_ready_text.draw(window)
 
     def draw_game_over(self, window):
-        self.game_over_text.draw(window)
-        self.restart_text.draw(window)
+        self.GAME_OVER_TEXT.draw(window)
+        self.RESTART_TEXT.draw(window)
 
     def draw_wave_cleared(self, window):
         self.wave_cleared_text.text = "WAVE " + str(self.wave_state.round) + " CLEARED"
