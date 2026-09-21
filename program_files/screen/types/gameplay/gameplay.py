@@ -18,8 +18,6 @@ Font Cleanup
 Probably cleanup the draw function
 
 '''
-# _____UNUSED____
-
 '''Helping Structure for Wave attributes'''
 
 @dataclass
@@ -34,8 +32,7 @@ class WaveState:
     next_ready = True
 
     max_enemy_count: int = 5
-
-# [TO DO] Apply the enemy state to the gameplay class, and make it so that the enemies are spawned from the enemy state instead of the gameplay class.
+    
 @dataclass
 class EnemyState:
     SPAWN_DELAY: ClassVar[int] = 3000
@@ -44,29 +41,40 @@ class EnemyState:
     count: int = 0
     spawn_time: int = 0
 
+
+# _____UNUSED_DATACLASSES____
+# [TO DO] Implement and apply the tower state to the gameplay class - actually think about it if it is even necessary
+# [TO DO] Remake the load tower slots function - let it still be a function of the gameplay class
+
+@dataclass 
+class TowerState: 
+    towers: list[Tower] = field(default_factory=list)
+    
+# [TO DO] Remove some of the text objects and make them into static text objects that are shared by all instances of the gameplay class
+ 
 class Gameplay(Screen):
     MAX_HEALTH = 100
+    START_MONEY = 200
+    INSUFFICIENT_FUNDS_DELAY = 700
 
     def __init__(self, app, selected_map):
         super().__init__(app)
         self.game_map = selected_map
 
         self.wave_state = WaveState()
+        self.enemy_state = EnemyState()
 
         self.health = self.MAX_HEALTH
 
         self.game_over = False
 
-        self.money = 200
+        self.money = self.START_MONEY
         self.insufficient_funds = False
-        self.insufficient_funds_delay = 700
         self.insufficient_funds_start_time = 0
         
         self.towers = []
         self.load_tower_slots()
         self.selected_tower_type = None
-
-        self.enemy_state = EnemyState()
 
         # Drawable Text Objects
         self.wave_ready_text = TextObject(
@@ -321,7 +329,7 @@ class Gameplay(Screen):
         if self.insufficient_funds:
             if (
                 current_time - self.insufficient_funds_start_time
-                >= self.insufficient_funds_delay
+                >= self.INSUFFICIENT_FUNDS_DELAY
             ):
                 self.insufficient_funds = False
 
