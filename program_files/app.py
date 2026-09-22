@@ -1,13 +1,14 @@
+# [TO DO]: Get rid of the temporary map and tower positions, and load them from a file instead
+
 from pathlib import Path
 
 import pygame
 
+from program_files.screen.types.main_menu import MainMenu
+
 from .maps.game_map import GameMap
 from .screen.types.gameplay.gameplay import Gameplay
-
-DISPLAY_WIDTH = 600
-DISPLAY_HEIGHT = 350
-
+from .screen.types.main_menu import MainMenu
 
 tmp_path = [
     (1, 176),
@@ -100,14 +101,17 @@ tmp_image = pygame.image.load(tmp_image_path)
 tmp_game_map = GameMap(tmp_image, tmp_path, tmp_tower_positions)
 
 class App:
+    DISPLAY_WIDTH = 600
+    DISPLAY_HEIGHT = 350
+
     def __init__(self):
         pygame.init()
 
-        self.window = pygame.display.set_mode((DISPLAY_WIDTH, DISPLAY_HEIGHT))
+        self.window = pygame.display.set_mode((self.DISPLAY_WIDTH, self.DISPLAY_HEIGHT))
         self.clock = pygame.time.Clock()
         self.running = True
 
-        self.current_screen = Gameplay(self, tmp_game_map)  # [TO DO]
+        self.current_screen = MainMenu(self)  # [TO DO]
 
     # ____METHODS____
 

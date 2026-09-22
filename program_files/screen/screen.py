@@ -14,6 +14,7 @@ class Screen(ABC):
     def handle_event(self, event):
         pass
 
+    @abstractmethod
     def update(self, dt):
         pass
 
