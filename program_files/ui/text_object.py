@@ -6,6 +6,7 @@ import pygame
 
 ColorValue = Union[str, pygame.Color, tuple[int, int, int], tuple[int, int, int, int]]
 
+#[TO DO] Try and get a different font
 
 @dataclass
 class TextObject:

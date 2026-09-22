@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
 from typing import ClassVar  # Shared by all classes, like a static attribute.
+from pathlib import Path
 
 import pygame
 
@@ -59,6 +60,12 @@ class Gameplay(Screen):
     START_MONEY = 200
     INSUFFICIENT_FUNDS_DELAY = 700
 
+    healthbar_image = pygame.image.load(
+        Path(__file__).resolve().parents[4]
+        /"asset_files"
+        /"gameplay"
+        /"healthbar.png")
+
     # [TO DO] Make the text objects into static text objects that are shared by all instances of the gameplay class
     GAME_OVER_TEXT = TextObject(
         text = "GAME OVER",
@@ -108,11 +115,11 @@ class Gameplay(Screen):
         )
 
         self.money_text = TextObject(
-            text = "POWER: " + str(self.money),
-            color = "White",
-            anchor = "bottomright",
-            position = (590, 320),
-            font_size = 10,
+            text = str(self.money),
+            color = "#9feef8",
+            anchor = "midright",
+            position = (170, 30),
+            font_size = 12,
         )
 
         self.sufficiency_text = TextObject(
@@ -129,6 +136,14 @@ class Gameplay(Screen):
             anchor = "bottomleft",
             position = (10, 340),
             font_size = 10,
+        )
+
+        self.healthbar_text = TextObject(
+            text = str(self.health) + "%",
+            color = "#9feef8",
+            anchor = "midright",
+            position = (70, 30),
+            font_size = 12,
         )
 
     def spawn_enemy(self):
@@ -227,6 +242,7 @@ class Gameplay(Screen):
 
     def draw(self, window):
         window.blit(self.game_map.image, (0, 0))
+        window.blit(self.healthbar_image, (10, 15))
 
         # [TO DO] Create a list for all the objects that always need to be drawn, like the tower slots and towers, and draw them in a loop.
 
@@ -240,7 +256,7 @@ class Gameplay(Screen):
         for tower in self.towers:
             tower.draw(window)
         
-        self.draw_money(window)
+        self.draw_power(window)
         self.draw_healthbar(window)
 
         if self.insufficient_funds and not self.wave_state.cleared:
@@ -268,8 +284,8 @@ class Gameplay(Screen):
         self.wave_cleared_text.text = "WAVE " + str(self.wave_state.round) + " CLEARED"
         self.wave_cleared_text.draw(window)
 
-    def draw_money(self, window):
-        self.money_text.text = "POWER: " + str(self.money)
+    def draw_power(self, window):
+        self.money_text.text = str(self.money)
         self.money_text.draw(window)
 
     def draw_selected_type(self, window):
@@ -277,14 +293,8 @@ class Gameplay(Screen):
         self.selected_tower_type_text.draw(window)
 
     def draw_healthbar(self, window):
-        healthbar_outline = pygame.Rect(0, 0, 100, 10)
-        healthbar_outline.bottomright = (590, 340)
-
-        health = pygame.Rect(0, 0, self.health / self.MAX_HEALTH * 100, 10)
-        health.bottomleft = healthbar_outline.bottomleft
-
-        pygame.draw.rect(window, "Yellow", health)
-        pygame.draw.rect(window, "White", healthbar_outline, 1)
+        self.healthbar_text.text = str(self.health) + "%"
+        self.healthbar_text.draw(window)
 
 # _____________
     def update_enemy_spawn(self, current_time):
