@@ -4,6 +4,8 @@ from pathlib import Path
 
 import pygame
 
+from program_files.screen.types.main_menu import MainMenu
+
 from ....maps.game_map import GameMap
 from ....ui.text_object import TextObject
 from ...screen import Screen
@@ -81,9 +83,16 @@ class Gameplay(Screen):
         font_size = 13,
     )
 
-    def __init__(self, app, selected_map):
+    MAIN_MENU_TEXT = TextObject(
+        text = "Press [M] to return to main menu",
+        color = "Yellow",
+        position = (300, 230),
+        font_size = 13,
+    )
+
+    def __init__(self, app, game_map):
         super().__init__(app)
-        self.game_map = selected_map
+        self.game_map = game_map
 
         self.wave_state = WaveState()
         self.enemy_state = EnemyState()
@@ -159,8 +168,11 @@ class Gameplay(Screen):
 
     def handle_event(self, event):
         if self.game_over:
-            if event.type == pygame.KEYDOWN and event.key == pygame.K_r:
-                self.app.change_screen(Gameplay(self.app, self.game_map))
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_r:
+                    self.app.change_screen(Gameplay(self.app, self.game_map))
+                elif event.key == pygame.K_m:
+                    self.app.change_screen(MainMenu(self.app))
             return
         
         if (
@@ -279,6 +291,7 @@ class Gameplay(Screen):
     def draw_game_over(self, window):
         self.GAME_OVER_TEXT.draw(window)
         self.RESTART_TEXT.draw(window)
+        self.MAIN_MENU_TEXT.draw(window)
 
     def draw_wave_cleared(self, window):
         self.wave_cleared_text.text = "WAVE " + str(self.wave_state.round) + " CLEARED"

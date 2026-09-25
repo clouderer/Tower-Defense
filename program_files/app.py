@@ -1,14 +1,13 @@
 # [TO DO]: Get rid of the temporary map and tower positions, and load them from a file instead
-
 from pathlib import Path
+from dataclasses import dataclass, field
 
 import pygame
-
-from program_files.screen.types.main_menu import MainMenu
 
 from .maps.game_map import GameMap
 from .screen.types.gameplay.gameplay import Gameplay
 from .screen.types.main_menu import MainMenu
+from .screen.types.settings_menu import SettingsMenu
 
 tmp_path = [
     (1, 176),
@@ -100,6 +99,11 @@ tmp_image_path = (
 tmp_image = pygame.image.load(tmp_image_path)
 tmp_game_map = GameMap(tmp_image, tmp_path, tmp_tower_positions)
 
+@dataclass
+class Volume: 
+    music_volume: float = 0.5
+    sfx_volume: float = 0.5
+
 class App:
     DISPLAY_WIDTH = 600
     DISPLAY_HEIGHT = 350
@@ -111,12 +115,28 @@ class App:
         self.clock = pygame.time.Clock()
         self.running = True
 
-        self.current_screen = MainMenu(self)  # [TO DO]
+        self.volume = Volume()
+
+        self.current_screen = MainMenu(self)
 
     # ____METHODS____
 
     def change_screen(self, new_screen):
         self.current_screen = new_screen
+
+    def get_main_menu(self):
+        self.change_screen(MainMenu(self))
+
+    # [TO DO]: Implement this method to load the game map from a file instead of using the temporary map
+    def get_gameplay(self):
+        self.change_screen(Gameplay(self, game_map=tmp_game_map))
+
+    def get_settings(self):
+        self.change_screen(SettingsMenu(self))
+
+    def get_pause_menu(self):
+        # self.change_screen(PauseMenu(self))
+        pass
 
     def run(self):
         while self.running:
@@ -134,7 +154,6 @@ class App:
             pygame.display.update()
 
         pygame.quit()
-
 
 game = App()
 game.run()

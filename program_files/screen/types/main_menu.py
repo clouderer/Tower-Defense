@@ -6,10 +6,10 @@ from ..screen import Screen
 from ...ui.text_object import TextObject
 
 class MainMenu(Screen):
-    def __init__(self, game):
-        super().__init__(game)
+    def __init__(self, app):
+        super().__init__(app)
 
-        self.main_menu = pygame.image.load(Path("asset_files/main_menu.png"))
+        self.main_menu = pygame.image.load(Path("asset_files/menu/main_menu.png"))
 
         # [TO DO]: Replace these with a button object that can be clicked
         self.start_text = TextObject(
@@ -27,7 +27,11 @@ class MainMenu(Screen):
         )
 
     def handle_event(self, event):
-        pass
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_RETURN:
+                self.app.get_gameplay()
+            elif event.key == pygame.K_s:
+                self.app.get_settings()
 
     def update(self, dt):
         pass
