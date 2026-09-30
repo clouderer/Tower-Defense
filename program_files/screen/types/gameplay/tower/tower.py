@@ -1,19 +1,16 @@
 import math
 
-from abc import ABC, abstractmethod
-
 import pygame
 
 from ..tower_slot.tower_slot import TowerSlot
 from ..enemy.enemy import Enemy
-
 
 class Tower:
     NAME = "BASIC TOWER"
     COST = 80
 
     def __init__(self, tower_slot):
-        self.rect = pygame.Rect(0, 0, 20, 20)
+        self.rect = pygame.Rect(0, 0, 10, 10)
         self.rect.center = tower_slot.rect.center
 
         self.range = 70
@@ -24,7 +21,7 @@ class Tower:
         self.target = None
 
     def draw(self, window): 
-        pygame.draw.rect(window, "pink", self.rect)
+        pygame.draw.rect(window, "Blue", self.rect)
 
         if self.target is not None:
             pygame.draw.circle(window, (100, 0, 0), self.rect.center, self.range, 2)

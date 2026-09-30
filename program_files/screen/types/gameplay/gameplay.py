@@ -19,6 +19,10 @@ Fix the event handling when introducing new towers
 Figure out how to draw out the healthbar numbers properly
 Font Cleanup
 '''
+# [TO DO] - Add GameOver screen to the overlay instead - implement the functions for it
+ 
+class GameOverOverlay: 
+    pass
 
 @dataclass
 class WaveState:
@@ -39,7 +43,8 @@ class WaveState:
 @dataclass
 class EnemyState:
     """
-    Class to manage the state of the enemies in the game."""
+    Class to manage the state of the enemies in the game.
+    """
     SPAWN_DELAY: ClassVar[int] = 3000
 
     enemies: list[Enemy] = field(default_factory=list)
@@ -56,17 +61,25 @@ class TowerState:
     towers: list[Tower] = field(default_factory=list)
     
 # [TO DO] Remove some of the text objects and make them into static text objects that are shared by all instances of the gameplay class
- 
+# [TO DO] Fix Gameplay so it has the same build as the dataclasses - like for the class variables would be good to let the reader know that it is a static variable
 class Gameplay(Screen):
-    MAX_HEALTH = 100
-    START_MONEY = 200
-    INSUFFICIENT_FUNDS_DELAY = 700
+    INSUFFICIENT_FUNDS_DELAY: ClassVar[int] = 700
 
-    healthbar_image = pygame.image.load(
-        Path(__file__).resolve().parents[4]
-        /"asset_files"
-        /"gameplay"
-        /"healthbar.png")
+    MAX_HEALTH: int = 100
+    START_MONEY: int = 200
+
+    GAMEPLAY_ASSET_DIR: ClassVar[Path] = Path(__file__).resolve().parents[4] / "asset_files" / "gameplay"
+
+    HEALTHBAR_IMG: ClassVar[pygame.Surface] = pygame.image.load(GAMEPLAY_ASSET_DIR / "healthbar.png")
+    TOWER_SELECTION_IMG: ClassVar[pygame.Surface] = pygame.image.load(GAMEPLAY_ASSET_DIR / "tower_selection.png")
+
+    PAUSE_SCREEN_IMG: ClassVar[pygame.Surface] = pygame.image.load(GAMEPLAY_ASSET_DIR / "pause_screen.png")
+    GAMEOVER_SCREEN_IMG: ClassVar[pygame.Surface] = pygame.image.load(GAMEPLAY_ASSET_DIR /"game_over.png")
+
+    MAIN_MENU_LIT_IMG: ClassVar[pygame.Surface] = pygame.image.load(GAMEPLAY_ASSET_DIR/ "main_menu_lit.png")
+    MAIN_MENU_UNLIT_IMG: ClassVar[pygame.Surface] = pygame.image.load(GAMEPLAY_ASSET_DIR/ "main_menu_lit.png")
+    REPLAY_LIT_IMG: ClassVar[pygame.Surface] = pygame.image.load(GAMEPLAY_ASSET_DIR/ "replay_lit.png")
+    REPLAY_UNLIT_IMG: ClassVar[pygame.Surface] = pygame.image.load(GAMEPLAY_ASSET_DIR/ "replay_unlit.png")
 
     # [TO DO] Make the text objects into static text objects that are shared by all instances of the gameplay class
     GAME_OVER_TEXT = TextObject(
@@ -116,8 +129,9 @@ class Gameplay(Screen):
             position = (300, 335),
         )
 
+        # [TO DO] - Make Wave Cleared Image
         self.wave_cleared_text = TextObject(
-            text = "WAVE " + str(self.wave_state.round) + " CLEARED",
+            text = "WAVE CLEARED",
             color = "Green",
             position = (300, 175),
             font_size = 40,
@@ -254,7 +268,6 @@ class Gameplay(Screen):
 
     def draw(self, window):
         window.blit(self.game_map.image, (0, 0))
-        window.blit(self.healthbar_image, (10, 15))
 
         # [TO DO] Create a list for all the objects that always need to be drawn, like the tower slots and towers, and draw them in a loop.
 
@@ -267,9 +280,12 @@ class Gameplay(Screen):
 
         for tower in self.towers:
             tower.draw(window)
-        
+
+        window.blit(self.HEALTHBAR_IMG, (10, 15))
         self.draw_power(window)
         self.draw_healthbar(window)
+
+        window.blit(self.TOWER_SELECTION_IMG, (445, 295))
 
         if self.insufficient_funds and not self.wave_state.cleared:
             self.sufficiency_text.draw(window)
@@ -284,12 +300,14 @@ class Gameplay(Screen):
         elif self.wave_state.next_ready:
             self.draw_wave_ready(window)
 
+        
+
     def draw_wave_ready(self, window):
         self.wave_ready_text.text = "Press [Space] to start wave " + str(self.wave_state.round)
         self.wave_ready_text.draw(window)
 
     def draw_game_over(self, window):
-        self.GAME_OVER_TEXT.draw(window)
+        window.blit(self.GAMEOVER_SCREEN_IMG, (0, 0))
         self.RESTART_TEXT.draw(window)
         self.MAIN_MENU_TEXT.draw(window)
 
@@ -310,19 +328,6 @@ class Gameplay(Screen):
         self.healthbar_text.draw(window)
 
 # _____________
-    def update_enemy_spawn(self, current_time):
-        if not self.wave_state.active:
-            return
-
-        if self.enemy_state.count >= self.wave_state.max_enemy_count:
-            return
-
-        if current_time - self.enemy_state.spawn_time < self.enemy_state.SPAWN_DELAY:
-            return
-
-        self.spawn_enemy()
-        self.enemy_state.spawn_time = current_time
-
     def update(self, dt):
         if self.game_over:
             return
@@ -386,6 +391,19 @@ class Gameplay(Screen):
             self.wave_state.round += 1
             self.enemy_state.count = 0
             self.enemy_state.spawn_time = current_time
+
+    def update_enemy_spawn(self, current_time):
+        if not self.wave_state.active:
+            return
+
+        if self.enemy_state.count >= self.wave_state.max_enemy_count:
+            return
+
+        if current_time - self.enemy_state.spawn_time < self.enemy_state.SPAWN_DELAY:
+            return
+
+        self.spawn_enemy()
+        self.enemy_state.spawn_time = current_time
 
 # __________________________________________________________________
 
