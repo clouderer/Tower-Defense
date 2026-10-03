@@ -20,15 +20,15 @@ class MainMenu(Screen):
 
         self.play_button = Button(
             position = (207, 218),
-            unlit_image=self.PLAY_UNLIT_IMG,
-            lit_image=self.PLAY_LIT_IMG,
+            unlit_img=self.PLAY_UNLIT_IMG,
+            lit_img=self.PLAY_LIT_IMG,
             action=self.app.get_map_selection,
         )
 
         self.settings_button = Button(
             position=(207, 270),
-            unlit_image=self.SETTING_UNLIT_IMG,
-            lit_image=self.SETTING_LIT_IMG,
+            unlit_img=self.SETTING_UNLIT_IMG,
+            lit_img=self.SETTING_LIT_IMG,
             action=self.app.get_settings,
         )
 

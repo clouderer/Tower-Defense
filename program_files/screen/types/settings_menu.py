@@ -11,17 +11,17 @@ class SettingsMenu(Screen):
 
     SETTINGS_IMG: ClassVar[pygame.Surface] = pygame.image.load(SETTINGS_ASSET_DIR / "settings.png")
     
-    BACK_UNLIT_IMG: ClassVar[pygame.Surface] = pygame.image.load(SETTINGS_ASSET_DIR / "back_unlit.png")
-    BACK_LIT_IMG: ClassVar[pygame.Surface] = pygame.image.load(SETTINGS_ASSET_DIR / "back_lit.png")
+    BACK_BUTTON_UNLIT_IMG: ClassVar[pygame.Surface] = pygame.image.load(SETTINGS_ASSET_DIR / "back_unlit.png")
+    BACK_BUTTON_LIT_IMG: ClassVar[pygame.Surface] = pygame.image.load(SETTINGS_ASSET_DIR / "back_lit.png")
 
     def __init__(self, app): 
         super().__init__(app)
 
         self.back_button = Button(
             position = (12, 12),
-            unlit_image = self.BACK_UNLIT_IMG, 
-            lit_image = self.BACK_LIT_IMG, 
-            action = app.get_main_menu
+            unlit_img = self.BACK_BUTTON_UNLIT_IMG, 
+            lit_img = self.BACK_BUTTON_LIT_IMG, 
+            action = app.pop_screen
         )
 
     def handle_event(self, event):

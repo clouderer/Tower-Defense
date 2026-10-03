@@ -24,8 +24,8 @@ class MapSelection(Screen):
     FRAME_LIT_IMG = pygame.image.load(MAP_OPT_ASSET_DIR/"frame_lit.png")
 
     # [TO DO] Make the buttons
-    BACK_LIT_IMG = pygame.image.load(MAP_OPT_ASSET_DIR/ "back_lit.png")
-    BACK_UNLIT_IMG = pygame.image.load(MAP_OPT_ASSET_DIR/ "back_unlit.png")
+    BACK_BUTTON_LIT_IMG = pygame.image.load(MAP_OPT_ASSET_DIR/ "back_lit.png")
+    BACK_BUTTON_UNLIT_IMG = pygame.image.load(MAP_OPT_ASSET_DIR/ "back_unlit.png")
 
     X_OFFSET = Y_OFFSET = 1
 
@@ -54,8 +54,8 @@ class MapSelection(Screen):
 
         self.back_button = Button(
             position = (12, 12),
-            unlit_image = self.BACK_UNLIT_IMG, 
-            lit_image = self.BACK_LIT_IMG, 
+            unlit_img = self.BACK_BUTTON_UNLIT_IMG, 
+            lit_img = self.BACK_BUTTON_LIT_IMG, 
             action = app.get_main_menu
         )
 

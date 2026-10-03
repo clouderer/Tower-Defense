@@ -6,8 +6,8 @@ class Button:
     def __init__(
         self,
         position: tuple[int, int],
-        unlit_image: pygame.Surface,
-        lit_image: pygame.Surface,
+        unlit_img: pygame.Surface,
+        lit_img: pygame.Surface,
         action: Callable[[], None], 
         anchor: str = "topleft"
     ):
@@ -16,9 +16,9 @@ class Button:
         self.hovering = False
         self.action = action
 
-        self.unlit_image = unlit_image
-        self.lit_image = lit_image
-        self.rect = self.unlit_image.get_rect(**{self.anchor: self.position})
+        self.unlit_img = unlit_img
+        self.lit_img = lit_img
+        self.rect = self.unlit_img.get_rect(**{self.anchor: self.position})
 
     def handle_event(self, event):
         if event.type == pygame.MOUSEMOTION:
@@ -28,7 +28,7 @@ class Button:
                 self.action()
 
     def draw(self, window):
-        image = self.lit_image if self.hovering else self.unlit_image
+        image = self.lit_img if self.hovering else self.unlit_img
         window.blit(image, self.rect)
 
     def set_action(self, action: Callable[[], None]):

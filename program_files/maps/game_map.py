@@ -16,6 +16,17 @@ import pygame
 # Map definitions
 MAP_ASSET_DIR = Path(__file__).resolve().parents[2] / "asset_files" / "maps"
 
+class GameMap:
+    def __init__(self, image, enemy_path, tower_positions):
+        self.image = image
+        self.width, self.height = image.get_size()
+
+        self.enemy_path = enemy_path
+        self.spawn_position = enemy_path[0]
+        self.exit_position = enemy_path[-1]
+
+        self.tower_positions = tower_positions
+
 NEON_GRID_PATH = (
     (1, 176),
     (26, 176),
@@ -82,22 +93,7 @@ NEON_GRID_TOWER_POSITIONS = (
     (426, 126),
     (451, 126),
     (476, 126),
-    (451, 201),
-    (451, 226),
-    (451, 251),
 )
-
-class GameMap:
-    def __init__(self, image, enemy_path, tower_positions):
-        self.image = image
-        self.width, self.height = image.get_size()
-
-        self.enemy_path = enemy_path
-        self.spawn_position = enemy_path[0]
-        self.exit_position = enemy_path[-1]
-
-        self.tower_positions = tower_positions
-
 
 NEON_GRID_MAP = GameMap(
     pygame.image.load(MAP_ASSET_DIR / "neon_grid.png"),

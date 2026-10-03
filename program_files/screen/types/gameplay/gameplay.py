@@ -8,6 +8,7 @@ from program_files.screen.types.main_menu import MainMenu
 
 from ....maps.game_map import GameMap
 from ....ui.text_object import TextObject
+from ....ui.button import Button
 from ...screen import Screen
 from .enemy.enemy import Enemy
 from .tower.tower import Tower
@@ -21,8 +22,19 @@ Font Cleanup
 '''
 # [TO DO] - Add GameOver screen to the overlay instead - implement the functions for it
  
-class GameOverOverlay: 
-    pass
+# class GameOverOverlay: 
+#     GAMEOVER_ASSET_DIR: ClassVar[Path] = Path(__file__).resolve().parents[4] / "asset_files" / "gameplay"
+
+#     GAMEOVER_SCREEN_IMG: ClassVar[pygame.Surface] = pygame.image.load(GAMEOVER_ASSET_DIR /"game_over.png")
+
+#     pass
+
+# class PauseOverlay:
+#     PAUSE_ASSET_DIR: ClassVar[Path] = Path(__file__).resolve().parents[4] / "asset_files" / "gameplay"
+
+#     PAUSE_SCREEN_IMG: ClassVar[pygame.Surface] = pygame.image.load(PAUSE_ASSET_DIR / "pause.png")
+
+#     pass
 
 @dataclass
 class WaveState:
@@ -73,35 +85,23 @@ class Gameplay(Screen):
     HEALTHBAR_IMG: ClassVar[pygame.Surface] = pygame.image.load(GAMEPLAY_ASSET_DIR / "healthbar.png")
     TOWER_SELECTION_IMG: ClassVar[pygame.Surface] = pygame.image.load(GAMEPLAY_ASSET_DIR / "tower_selection.png")
 
-    PAUSE_SCREEN_IMG: ClassVar[pygame.Surface] = pygame.image.load(GAMEPLAY_ASSET_DIR / "pause_screen.png")
+    PAUSE_SCREEN_IMG: ClassVar[pygame.Surface] = pygame.image.load(GAMEPLAY_ASSET_DIR / "pause.png")
     GAMEOVER_SCREEN_IMG: ClassVar[pygame.Surface] = pygame.image.load(GAMEPLAY_ASSET_DIR /"game_over.png")
+    WAVE_CLEARED_IMG: ClassVar[pygame.Surface] = pygame.image.load(GAMEPLAY_ASSET_DIR / "wave_cleared.png")
 
-    MAIN_MENU_LIT_IMG: ClassVar[pygame.Surface] = pygame.image.load(GAMEPLAY_ASSET_DIR/ "main_menu_lit.png")
-    MAIN_MENU_UNLIT_IMG: ClassVar[pygame.Surface] = pygame.image.load(GAMEPLAY_ASSET_DIR/ "main_menu_lit.png")
-    REPLAY_LIT_IMG: ClassVar[pygame.Surface] = pygame.image.load(GAMEPLAY_ASSET_DIR/ "replay_lit.png")
-    REPLAY_UNLIT_IMG: ClassVar[pygame.Surface] = pygame.image.load(GAMEPLAY_ASSET_DIR/ "replay_unlit.png")
+    MAIN_MENU_LIT_IMG: ClassVar[pygame.Surface] = pygame.image.load(GAMEPLAY_ASSET_DIR / "main_menu_lit.png")
+    MAIN_MENU_UNLIT_IMG: ClassVar[pygame.Surface] = pygame.image.load(GAMEPLAY_ASSET_DIR / "main_menu_unlit.png")
+    REPLAY_LIT_IMG: ClassVar[pygame.Surface] = pygame.image.load(GAMEPLAY_ASSET_DIR / "replay_lit.png")
+    REPLAY_UNLIT_IMG: ClassVar[pygame.Surface] = pygame.image.load(GAMEPLAY_ASSET_DIR / "replay_unlit.png")
 
-    # [TO DO] Make the text objects into static text objects that are shared by all instances of the gameplay class
-    GAME_OVER_TEXT = TextObject(
-        text = "GAME OVER",
-        color = "Red",
-        position = (300, 175),
-        font_size = 40,
-    )
-
-    RESTART_TEXT = TextObject(
-        text = "Press [R] to restart",
-        color = "Yellow",
-        position = (300, 210),
-        font_size = 13,
-    )
-
-    MAIN_MENU_TEXT = TextObject(
-        text = "Press [M] to return to main menu",
-        color = "Yellow",
-        position = (300, 230),
-        font_size = 13,
-    )
+    HOME_BUTTON_LIT_IMG: ClassVar[pygame.Surface] = pygame.image.load(GAMEPLAY_ASSET_DIR / "home_lit.png")
+    HOME_BUTTON_UNLIT_IMG: ClassVar[pygame.Surface] = pygame.image.load(GAMEPLAY_ASSET_DIR / "home_unlit.png")
+    SETTINGS_BUTTON_LIT_IMG: ClassVar[pygame.Surface] = pygame.image.load(GAMEPLAY_ASSET_DIR / "settings_lit.png")
+    SETTINGS_BUTTON_UNLIT_IMG: ClassVar[pygame.Surface] = pygame.image.load(GAMEPLAY_ASSET_DIR / "settings_unlit.png")
+    PAUSE_BUTTON_LIT_IMG: ClassVar[pygame.Surface] = pygame.image.load(GAMEPLAY_ASSET_DIR / "pause_lit.png")
+    PAUSE_BUTTON_UNLIT_IMG: ClassVar[pygame.Surface] = pygame.image.load(GAMEPLAY_ASSET_DIR / "pause_unlit.png")
+    RESTART_BUTTON_LIT_IMG: ClassVar[pygame.Surface] = pygame.image.load(GAMEPLAY_ASSET_DIR / "restart_lit.png")
+    RESTART_BUTTON_UNLIT_IMG: ClassVar[pygame.Surface] = pygame.image.load(GAMEPLAY_ASSET_DIR / "restart_unlit.png")
 
     def __init__(self, app, game_map):
         super().__init__(app)
@@ -110,9 +110,49 @@ class Gameplay(Screen):
         self.wave_state = WaveState()
         self.enemy_state = EnemyState()
 
-        self.health = self.MAX_HEALTH
+        self.home_button = Button(
+            position = (563, 10),
+            lit_img = self.HOME_BUTTON_LIT_IMG,
+            unlit_img = self.HOME_BUTTON_UNLIT_IMG,
+            action = app.get_main_menu
+        )
 
-        self.game_over = False
+        self.settings_button = Button(
+            position = (532, 10),
+            lit_img = self.SETTINGS_BUTTON_LIT_IMG,
+            unlit_img = self.SETTINGS_BUTTON_UNLIT_IMG,
+            action = app.get_settings
+        )
+
+        self.restart_button = Button(
+            position = (501, 10),
+            lit_img = self.RESTART_BUTTON_LIT_IMG,
+            unlit_img = self.RESTART_BUTTON_UNLIT_IMG,
+            action = lambda: self.app.change_screen(Gameplay(self.app, self.game_map))
+        )
+
+        self.pause_button = Button(
+            position = (471, 10),
+            lit_img = self.PAUSE_BUTTON_LIT_IMG,
+            unlit_img = self.PAUSE_BUTTON_UNLIT_IMG,
+            action = self.toggle_pause
+        )
+        
+        self.over_restart_button = Button(
+            position = (207,207),
+            lit_img = self.REPLAY_LIT_IMG,
+            unlit_img = self.REPLAY_UNLIT_IMG,
+            action = lambda: self.app.change_screen(Gameplay(self.app, self.game_map))
+        )
+
+        self.over_main_menu_button = Button(
+            position = (207, 256),
+            lit_img = self.MAIN_MENU_LIT_IMG,
+            unlit_img = self.MAIN_MENU_UNLIT_IMG,
+            action = self.app.get_main_menu
+        )
+
+        self.health = self.MAX_HEALTH
 
         self.money = self.START_MONEY
         self.insufficient_funds = False
@@ -122,19 +162,14 @@ class Gameplay(Screen):
         self.load_tower_slots()
         self.selected_tower_type = None
 
+        self.paused = False
+        self.game_over = False
+
         # Drawable Text Objects
         self.wave_ready_text = TextObject(
             text = "Press [Space] to start wave " + str(self.wave_state.round),
             color = "Yellow",
             position = (300, 335),
-        )
-
-        # [TO DO] - Make Wave Cleared Image
-        self.wave_cleared_text = TextObject(
-            text = "WAVE CLEARED",
-            color = "Green",
-            position = (300, 175),
-            font_size = 40,
         )
 
         self.money_text = TextObject(
@@ -145,7 +180,7 @@ class Gameplay(Screen):
             font_size = 12,
         )
 
-        self.sufficiency_text = TextObject(
+        self.insufficient_funds_text = TextObject(
             text = "INSUFFICIENT FUNDS",
             color = "Red",
             anchor = "bottomleft",
@@ -168,6 +203,7 @@ class Gameplay(Screen):
             position = (70, 30),
             font_size = 12,
         )
+    #____GAMEPLAY_LOADING_METHODS____
 
     def spawn_enemy(self):
         self.enemy_state.enemies.append(
@@ -180,14 +216,52 @@ class Gameplay(Screen):
             TowerSlot(position)
             for position in self.game_map.tower_positions]
 
-    def handle_event(self, event):
-        if self.game_over:
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_r:
-                    self.app.change_screen(Gameplay(self.app, self.game_map))
-                elif event.key == pygame.K_m:
-                    self.app.change_screen(MainMenu(self.app))
+    #____BUTTON_ACTIONS____
+    def toggle_pause(self):
+        now = pygame.time.get_ticks()
+
+        if not self.paused:
+            self.paused = True
+            self.pause_start_time = now
             return
+
+        paused_duration = now - self.pause_start_time
+        self.enemy_state.spawn_time += paused_duration
+
+        if self.wave_state.cleared_start_time is not None:
+            self.wave_state.cleared_start_time += paused_duration
+
+        if self.insufficient_funds: 
+            self.insufficient_funds_start_time += paused_duration
+
+        for tower in self.towers: 
+            tower.last_attack_time += paused_duration
+
+        self.paused = False
+
+    #____EVENT_HANDLING____
+
+    def handle_event(self, event):
+        if (self.paused):
+            if (
+                event.type == pygame.MOUSEBUTTONDOWN
+                and event.button == 1
+            ): 
+                self.toggle_pause()
+            return
+        
+        if self.game_over:
+            self.over_main_menu_button.handle_event(event)
+            self.over_restart_button.handle_event(event)
+            return
+
+        self.pause_button.handle_event(event)
+        if self.paused:
+            return
+
+        self.restart_button.handle_event(event)
+        self.home_button.handle_event(event)
+        self.settings_button.handle_event(event)
         
         if (
             event.type == pygame.MOUSEBUTTONDOWN
@@ -264,43 +338,52 @@ class Gameplay(Screen):
         for slot in self.tower_slots:
             slot.selected = slot.hovering = False
 
-# ____DRAW____
+# ____DRAW_METHOD____
 
     def draw(self, window):
         window.blit(self.game_map.image, (0, 0))
 
-        # [TO DO] Create a list for all the objects that always need to be drawn, like the tower slots and towers, and draw them in a loop.
+        self.draw_tower_slots(window)
+        self.draw_towers(window)
+        self.draw_enemies(window)
 
-        for slot in self.tower_slots:
-            slot.draw(window)
+        self.draw_health_power(window)
 
-        for enemy in self.enemy_state.enemies:
-            if not enemy.reached_end:
-                enemy.draw(window)
-
-        for tower in self.towers:
-            tower.draw(window)
-
-        window.blit(self.HEALTHBAR_IMG, (10, 15))
-        self.draw_power(window)
-        self.draw_healthbar(window)
+        self.home_button.draw(window)
+        self.settings_button.draw(window)
+        self.pause_button.draw(window)
+        self.restart_button.draw(window)
 
         window.blit(self.TOWER_SELECTION_IMG, (445, 295))
 
         if self.insufficient_funds and not self.wave_state.cleared:
-            self.sufficiency_text.draw(window)
+            self.insufficient_funds_text.draw(window)
 
         if self.selected_tower_type is not None and not self.wave_state.cleared:
             self.draw_selected_type(window)
 
-        if self.game_over:
+        if self.paused: 
+            window.blit(self.PAUSE_SCREEN_IMG, (0, 0))
+        elif self.game_over:
             self.draw_game_over(window)
         elif self.wave_state.cleared:
             self.draw_wave_cleared(window)
         elif self.wave_state.next_ready:
             self.draw_wave_ready(window)
 
-        
+    #____DRAW_HELPER_METHODS____
+    def draw_tower_slots(self, window):
+        for slot in self.tower_slots:
+            slot.draw(window)
+
+    def draw_enemies(self, window):
+        for enemy in self.enemy_state.enemies:
+            if not enemy.reached_end:
+                enemy.draw(window)
+
+    def draw_towers(self, window):
+        for tower in self.towers:
+            tower.draw(window)
 
     def draw_wave_ready(self, window):
         self.wave_ready_text.text = "Press [Space] to start wave " + str(self.wave_state.round)
@@ -308,37 +391,59 @@ class Gameplay(Screen):
 
     def draw_game_over(self, window):
         window.blit(self.GAMEOVER_SCREEN_IMG, (0, 0))
-        self.RESTART_TEXT.draw(window)
-        self.MAIN_MENU_TEXT.draw(window)
+        self.over_main_menu_button.draw(window)
+        self.over_restart_button.draw(window)
 
     def draw_wave_cleared(self, window):
-        self.wave_cleared_text.text = "WAVE " + str(self.wave_state.round) + " CLEARED"
-        self.wave_cleared_text.draw(window)
-
-    def draw_power(self, window):
-        self.money_text.text = str(self.money)
-        self.money_text.draw(window)
+        window.blit(self.WAVE_CLEARED_IMG, (0, 20))
 
     def draw_selected_type(self, window):
         self.selected_tower_type_text.text = "SELECTED: " + self.selected_tower_type.NAME
         self.selected_tower_type_text.draw(window)
 
-    def draw_healthbar(self, window):
+    def draw_health_power(self, window):
+        window.blit(self.HEALTHBAR_IMG, (10, 15))
+
+        self.money_text.text = str(self.money)
+        self.money_text.draw(window)
+
         self.healthbar_text.text = str(self.health) + "%"
         self.healthbar_text.draw(window)
 
-# _____________
+# ____UPDATE____
     def update(self, dt):
-        if self.game_over:
+        if self.game_over or self.paused:
             return
         
         current_time = pygame.time.get_ticks()
 
+        self.update_enemies(current_time, dt)
+        self.update_insufficient_funds(current_time)
+
+        if self.health <= 0:
+            self.set_game_over()
+            return
+
         if (
+            self.enemy_state.count == self.wave_state.max_enemy_count
+            and len(self.enemy_state.enemies) == 0
+            and not self.wave_state.cleared
+        ):
+            self.set_wave_cleared(current_time)
+
+        if (
+            self.wave_state.cleared
+            and current_time - self.wave_state.cleared_start_time
+            >= self.wave_state.CLEARED_DELAY
+        ):
+            self.set_next_wave_ready(current_time)
+
+    def update_enemies(self, current_time, dt): 
+        if( 
             self.enemy_state.count < self.wave_state.max_enemy_count
             and self.wave_state.active
-        ):
-            if current_time - self.enemy_state.spawn_time >= self.enemy_state.SPAWN_DELAY:
+        ): 
+            if current_time - self.enemy_state.spawn_time >= self.enemy_state.SPAWN_DELAY: 
                 self.spawn_enemy()
                 self.enemy_state.spawn_time = current_time
 
@@ -357,54 +462,36 @@ class Gameplay(Screen):
             if enemy.is_alive
         ]
 
+    def update_insufficient_funds(self, current_time):
         if self.insufficient_funds:
-            if (
-                current_time - self.insufficient_funds_start_time
-                >= self.INSUFFICIENT_FUNDS_DELAY
-            ):
+            if current_time - self.insufficient_funds_start_time >= self.INSUFFICIENT_FUNDS_DELAY:
                 self.insufficient_funds = False
+                self.insufficient_funds_start_time = None
+                
+    def set_game_over(self):
+        self.health = 0
+        self.game_over = True
+        self.wave_state.cleared = False
+        self.enemy_state.enemies = []
 
-        if self.health <= 0:
-            self.health = 0
-            self.game_over = True
-            self.wave_state.cleared = False
-            self.enemy_state.enemies = []
-            return
+    def set_wave_cleared(self, current_time):
+        self.wave_state.active = False
+        self.wave_state.cleared = True
+        self.wave_state.cleared_start_time = current_time
 
-        if (
-            self.enemy_state.count == self.wave_state.max_enemy_count
-            and len(self.enemy_state.enemies) == 0
-            and not self.wave_state.cleared
-        ):
-            self.wave_state.active = False
-            self.wave_state.cleared = True
-            self.wave_state.cleared_start_time = pygame.time.get_ticks()
-
-        if (
-            self.wave_state.cleared
-            and current_time - self.wave_state.cleared_start_time
-            >= self.wave_state.CLEARED_DELAY
-        ):
-            self.wave_state.cleared = False
-            self.wave_state.next_ready = True
-
-            self.wave_state.round += 1
-            self.enemy_state.count = 0
-            self.enemy_state.spawn_time = current_time
-
-    def update_enemy_spawn(self, current_time):
-        if not self.wave_state.active:
-            return
-
-        if self.enemy_state.count >= self.wave_state.max_enemy_count:
-            return
-
-        if current_time - self.enemy_state.spawn_time < self.enemy_state.SPAWN_DELAY:
-            return
-
-        self.spawn_enemy()
+    def set_next_wave_ready(self, current_time):
+        self.wave_state.cleared = False
+        self.wave_state.next_ready = True
+        
+        self.wave_state.round += 1
+        self.enemy_state.count = 0
         self.enemy_state.spawn_time = current_time
+    # [TO DO] Implement these gameplay update helpers during cleanup:
+    # update_health(),
+    # update_towers(current_time), update_selected_tower_type(),
+    # update_tower_slots(), update_money().
 
+    
 # __________________________________________________________________
 
     # def draw_path(self, window):
@@ -418,3 +505,20 @@ class Gameplay(Screen):
     #         pygame.draw.circle(
     #             window, "green", (x,y), 1
     #     )
+
+
+#Figure out what this was
+
+        # def update_enemy_spawn(self, current_time):
+    #     if not self.wave_state.active:
+    #         return
+
+    #     if self.enemy_state.count >= self.wave_state.max_enemy_count:
+    #         return
+
+    #     if current_time - self.enemy_state.spawn_time < self.enemy_state.SPAWN_DELAY:
+    #         return
+
+    #     self.spawn_enemy()
+    #     self.enemy_state.spawn_time = current_time
+
