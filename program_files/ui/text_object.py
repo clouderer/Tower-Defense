@@ -9,7 +9,8 @@ ColorValue = Union[
     tuple[int, int, int, int]
 ]
 
-#[TO DO] Try and get a different font
+# [TO DO] Try and get a different font
+
 
 @dataclass
 class TextObject:
@@ -23,6 +24,9 @@ class TextObject:
     position: tuple[int, int] = (0, 0)
 
     def draw(self, window: pygame.Surface):
+        '''
+        Render the configured text and blit it using the selected anchor.
+        '''
         font = pygame.font.Font(self.font, self.font_size)
         surface = font.render(
             self.text, self.antialias, self.color, self.background

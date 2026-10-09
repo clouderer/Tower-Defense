@@ -1,9 +1,9 @@
 """
 Good idea would be to have maps with different sizes
-for our purposes all maps will have the same diemsnions: 
+for our purposes all maps will have the same diemsnions:
 
-    350x600  <--- This size was selected as optimal by me 
-    
+    350x600  <--- This size was selected as optimal by me
+
     It is large enough for the game, and small enough to have it as a little
     side window
 """
@@ -13,11 +13,19 @@ from pathlib import Path
 import pygame
 
 
-# Map definitions
+# Directory to the Map assets
 MAP_ASSET_DIR = Path(__file__).resolve().parents[2] / "asset_files" / "maps"
 
+
 class GameMap:
+    '''
+    Class to manage a map choice
+    '''
+
     def __init__(self, image, enemy_path, tower_positions):
+        '''
+        Store the map image, enemy route, and available tower locations.
+        '''
         self.image = image
         self.width, self.height = image.get_size()
 
@@ -27,6 +35,8 @@ class GameMap:
 
         self.tower_positions = tower_positions
 
+
+# Hardcoded parameters for the NEON_GRID map
 NEON_GRID_PATH = (
     (1, 176),
     (26, 176),

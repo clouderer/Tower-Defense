@@ -7,20 +7,28 @@ from .screen.types.main_menu import MainMenu
 from .screen.types.map_selection import MapSelection
 from .screen.types.settings_menu import SettingsMenu
 
-# [TO DO] Settings will be able to access the Volume, the volume has to be shared by all the screens, therefore needs to be stored in the App class. The volume will be passed to the SettingsMenu and Gameplay screens, which will use it to set the volume of the music and sound effects.
-@dataclass 
-class Volume: 
+# [TO DO] Store shared volume in App and pass it to SettingsMenu and Gameplay
+# so those screens can control music and sound effect volume.
+
+
+@dataclass
+class Volume:
     music_volume: float = 1.0
     sfx_volume: float = 1.0
+
 
 class App:
     DISPLAY_WIDTH = 600
     DISPLAY_HEIGHT = 350
 
     def __init__(self):
+        '''
+        Initialize Pygame, the display, shared state, and the starting screen.
+        '''
         pygame.init()
 
-        self.window = pygame.display.set_mode((self.DISPLAY_WIDTH, self.DISPLAY_HEIGHT))
+        self.window = pygame.display.set_mode(
+            (self.DISPLAY_WIDTH, self.DISPLAY_HEIGHT))
         self.clock = pygame.time.Clock()
         self.running = True
 
@@ -28,18 +36,17 @@ class App:
 
         self.screen_stack = [MainMenu(self)]
 
-    #____SCREEN_TRANSITION_METHODS____
+    # ____SCREEN_TRANSITION_METHODS____
     @property
     def current_screen(self):
         '''
-        Returns the current screen, which is the screen at the top of the screen stack.
+        Return the screen at the top of the screen stack.
         '''
         return self.screen_stack[-1]
 
     def change_screen(self, screen):
         '''
-        Removes all screens from the screen stack and sets the current screen to the given screen.
-        Used for permanent transitions. 
+        Replace the stack with a screen for a permanent transition.
         '''
         self.screen_stack[:] = [screen]
 
@@ -56,8 +63,8 @@ class App:
         if len(self.screen_stack) > 1:
             self.screen_stack.pop()
 
-
     # ____SCREEN_FETCHING_METHODS____
+
     def get_main_menu(self):
         '''
         Changes the current screen to the main menu.
@@ -82,10 +89,10 @@ class App:
         '''
         self.push_screen(SettingsMenu(self))
 
-    #____RUN_METHOD____
+    # ____RUN_METHOD____
     def run(self):
         '''
-        Runs the main game loop, which handles events, updates the current screen, and draws the current screen.
+        Handle events, update the screen, and draw each frame in the main loop.
         '''
         while self.running:
             dt = self.clock.tick(60) / 1000
@@ -102,6 +109,7 @@ class App:
             pygame.display.update()
 
         pygame.quit()
+
 
 game = App()
 game.run()

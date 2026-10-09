@@ -7,7 +7,8 @@ from ...ui.button import Button
 
 
 class MainMenu(Screen):
-    MENU_ASSET_DIR = Path(__file__).resolve().parents[3] / "asset_files" / "menu"
+    MENU_ASSET_DIR = Path(__file__).resolve(
+    ).parents[3] / "asset_files" / "menu"
 
     MENU_IMG = pygame.image.load(MENU_ASSET_DIR / "main_menu.png")
     PLAY_LIT_IMG = pygame.image.load(MENU_ASSET_DIR / "play_lit.png")
@@ -16,10 +17,13 @@ class MainMenu(Screen):
     SETTING_LIT_IMG = pygame.image.load(MENU_ASSET_DIR / "setting_lit.png")
 
     def __init__(self, app):
+        '''
+        Initialize the main menu and its play and settings buttons.
+        '''
         super().__init__(app)
 
         self.play_button = Button(
-            position = (207, 218),
+            position=(207, 218),
             unlit_img=self.PLAY_UNLIT_IMG,
             lit_img=self.PLAY_LIT_IMG,
             action=self.app.get_map_selection,
@@ -33,6 +37,9 @@ class MainMenu(Screen):
         )
 
     def handle_event(self, event):
+        '''
+        Handle menu shortcuts and forward input to the menu buttons.
+        '''
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_RETURN:
                 self.app.get_map_selection()
@@ -43,10 +50,15 @@ class MainMenu(Screen):
         self.settings_button.handle_event(event)
 
     def update(self, dt):
+        '''
+        Update the menu; it has no animated state to advance.
+        '''
         pass
 
     def draw(self, window):
+        '''
+        Draw the menu background and its buttons.
+        '''
         window.blit(self.MENU_IMG, (0, 0))
         self.play_button.draw(window)
         self.settings_button.draw(window)
-
