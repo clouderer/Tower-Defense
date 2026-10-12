@@ -110,7 +110,7 @@ class Gameplay(Screen):
     INSUFFICIENT_FUNDS_DELAY: ClassVar[int] = 700
 
     MAX_HEALTH: int = 100
-    START_MONEY: int = 300
+    START_MONEY: int = 100
 
     GAMEPLAY_ASSET_DIR: ClassVar[Path] = Path(
         __file__).resolve().parents[4] / "asset_files" / "gameplay"
@@ -119,6 +119,8 @@ class Gameplay(Screen):
         GAMEPLAY_ASSET_DIR / "healthbar.png")
     TOWER_SELECTION_IMG: ClassVar[pygame.Surface] = pygame.image.load(
         GAMEPLAY_ASSET_DIR / "tower_selection.png")
+    SELECTION_OVERLAY_IMG: ClassVar[pygame.Surface] = pygame.image.load(
+        GAMEPLAY_ASSET_DIR/ "selection_overlay.png")
     BAR_IMG: ClassVar[pygame.Surface] = pygame.image.load(
         GAMEPLAY_ASSET_DIR / "bar.png")
 
@@ -154,6 +156,9 @@ class Gameplay(Screen):
         GAMEPLAY_ASSET_DIR / "restart_lit.png")
     RESTART_BUTTON_UNLIT_IMG: ClassVar[pygame.Surface] = pygame.image.load(
         GAMEPLAY_ASSET_DIR / "restart_unlit.png")
+
+    AFFORDABLE_COLOR = "#9feef8"
+    UNAFFORDABLE_COLOR = "#636363"
 
     def __init__(self, app, game_map):
         '''
@@ -264,6 +269,36 @@ class Gameplay(Screen):
             position=(70, 30),
             font_size=12,
         )
+
+        self.firewall_price_text = TextObject( 
+            text = str(FirewallPulse.COST), 
+            color = "#9feef8", 
+            position = (474, 340),
+            font_size = 8,
+        )
+
+        self.bitblast_price_text = TextObject( 
+            text = str(BitBlaster.COST), 
+            color = "#9feef8", 
+            position = (510, 340),
+            font_size = 8,
+        )
+
+        self.proxy_price_text = TextObject( 
+            text = str(ProxyBeam.COST), 
+            color = "#9feef8", 
+            position = (546, 340),
+            font_size = 8,
+        )
+
+        self.clock_price_text = TextObject( 
+            text = str(ClockThrottler.COST), 
+            color = "#9feef8", 
+            position = (582, 340),
+            font_size = 8,
+        )
+
+        
     # ____GAMEPLAY_LOADING_METHODS____
 
     def spawn_enemy(self):
@@ -442,6 +477,11 @@ class Gameplay(Screen):
         self.restart_button.draw(window)
 
         window.blit(self.TOWER_SELECTION_IMG, (445, 295))
+        # [TO DO] Apply the finished helper method
+        self.draw_tower_cost_selection(FirewallPulse, self.firewall_price_text,(451,301), window)
+        self.draw_tower_cost_selection(BitBlaster, self.bitblast_price_text,(487,301), window)
+        self.draw_tower_cost_selection(ProxyBeam, self.proxy_price_text, (523,301), window)
+        self.draw_tower_cost_selection(ClockThrottler, self.clock_price_text, (559,301), window)
 
         if self.insufficient_funds and not self.wave_state.cleared:
             self.insufficient_funds_text.draw(window)
@@ -462,6 +502,15 @@ class Gameplay(Screen):
             self.draw_wave_ready(window)
 
     # ____DRAW_HELPER_METHODS____
+    # [TO DO] Finish this helper method
+    def draw_tower_cost_selection(self, Tower, text, pos, window): 
+        if Tower.COST <= self.money: 
+            text.color = self.AFFORDABLE_COLOR 
+        else:
+            text.color = self.UNAFFORDABLE_COLOR
+            window.blit(self.SELECTION_OVERLAY_IMG, pos)
+        text.draw(window)
+
     def draw_tower_slots(self, window):
         '''
         Draw all tower slots.
