@@ -22,9 +22,9 @@ class ProxyBeam(Tower):
         '''
         super().__init__(tower_slot)
 
-        self.range = 150
-        self.damage = 15
-        self.attack_cooldown = 1400
+        self.range = 120
+        self.damage = 20
+        self.attack_cooldown = 1500
 
         self.overlay_img = pygame.image.load(
             self.PROXYBEAM_ASSET_DIR / "proxybeam_overlay.png")
