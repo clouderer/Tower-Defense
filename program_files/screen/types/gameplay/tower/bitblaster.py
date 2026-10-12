@@ -27,8 +27,8 @@ class BitBlaster(Tower):
         super().__init__(tower_slot)
 
         self.range = 60
-        self.damage = 1
-        self.attack_cooldown = 130
+        self.damage = 2
+        self.attack_cooldown = 150
 
         self.overlay_img = pygame.image.load(
             self.BITBLASTER_ASSET_DIR / "bitblaster_overlay.png")

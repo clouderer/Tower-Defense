@@ -22,9 +22,9 @@ class FirewallPulse(Tower):
         '''
         super().__init__(tower_slot)
 
-        self.range = 60
-        self.damage = 3
-        self.attack_cooldown = 300
+        self.range = 75
+        self.damage = 5
+        self.attack_cooldown = 500
 
         self.overlay_img = pygame.image.load(
             self.FIREWALL_ASSET_DIR / "firewall_overlay.png")

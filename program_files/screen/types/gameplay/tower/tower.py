@@ -103,12 +103,14 @@ class Tower:
         '''
         if (
             self.target is not None
+            and self.target.is_alive
+            and not self.target.reached_end
             and current_time - self.last_attack_time >= self.attack_cooldown
         ):
             self.target.health -= self.damage
             self.last_attack_time = current_time
 
-            if not self.target.health <= 0:
+            if self.target.health <= 0:
                 self.target.is_alive = False
                 return self.target.reward
 

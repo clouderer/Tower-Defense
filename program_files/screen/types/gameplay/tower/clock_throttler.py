@@ -27,9 +27,9 @@ class ClockThrottler(Tower):
         '''
         super().__init__(tower_slot)
 
-        self.range = 100
-        self.damage = 0.0005
-        self.attack_cooldown = 15
+        self.range = 90
+        self.damage = 1
+        self.attack_cooldown = 250
 
         self.overlay_img = pygame.image.load(
             self.CLOCK_ASSET_DIR / "clock_overlay.png")
@@ -54,8 +54,10 @@ class ClockThrottler(Tower):
 
     def find_target(self, enemies):
         '''
-        Add living enemies within range to the list of targets.
+        Refresh living enemies within range and the target used for drawing.
         '''
+        self.enemies_in_range = []
+
         for enemy in enemies:
             if not enemy.is_alive or enemy.reached_end:
                 continue
@@ -65,15 +67,14 @@ class ClockThrottler(Tower):
                 enemy.y_position - self.rect.centery
             )
 
-        # [TO DO] Check how many enemies are in the area - apply
             if distance_to_enemy <= self.range:
                 self.enemies_in_range.append(enemy)
 
-    def attack(self, current_time):
+    def attack(self, current_time) -> int:
         '''
-        Damage enemies in range and return the reward if an enemy is defeated.
+        Damage all targets once per cooldown and return their combined rewards.
         '''
-        if self.enemies_in_range is []:
+        if current_time - self.last_attack_time < self.attack_cooldown:
             return 0
 
         enemies = [
@@ -84,12 +85,17 @@ class ClockThrottler(Tower):
             )
         ]
 
+        if not enemies:
+            return 0
+
+        self.last_attack_time = current_time
+        reward = 0
+
         for enemy in enemies:
             enemy.health -= self.damage
-            self.last_attack_time = current_time
 
             if enemy.health <= 0:
                 enemy.is_alive = False
-                return enemy.reward
+                reward += enemy.reward
 
-        return 0
+        return reward
