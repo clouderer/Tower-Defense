@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Optional, Union
 
 import pygame
@@ -9,12 +10,17 @@ ColorValue = Union[
     tuple[int, int, int, int]
 ]
 
-# [TO DO] Try and get a different font
+PIXEL_FONT = str(
+    Path(__file__).resolve().parents[2]
+    / "asset_files"
+    / "fonts"
+    / "Silkscreen-Regular.ttf"
+)
 
 
 @dataclass
 class TextObject:
-    font: Optional[str] = "freesansbold.ttf"
+    font: Optional[str] = PIXEL_FONT
     font_size: int = 13
     text: str = ""
     antialias: bool = True
