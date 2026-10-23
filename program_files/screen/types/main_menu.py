@@ -47,13 +47,7 @@ class MainMenu(Screen):
         self.sprites = pygame.sprite.Group(self.overlay_sprite)
 
     def handle_event(self, event: pygame.event) -> None:
-        """Handle the menu keys and button input."""
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_RETURN:
-                self.app.get_map_selection()
-            elif event.key == pygame.K_s:
-                self.app.get_settings()
-
+        """Handle the button input."""
         self.play_button.handle_event(event)
         self.settings_button.handle_event(event)
 
