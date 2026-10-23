@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Callable
 
 import pygame
@@ -18,8 +20,8 @@ class Button:
         # In the case of a button the Callable takes no arguments
         # and returns None
         action: Callable[[], None],
-        anchor: str = "topleft"
-    ):
+        anchor: str = "topleft",
+    ) -> None:
         """Store the button images, position, and action."""
         self.anchor = anchor
         self.position = position
@@ -30,13 +32,14 @@ class Button:
         self.lit_img = lit_img
 
         # Note the use of dictionary unpacking
-        # The anchor and position attributes are packed into a dictionary 
-        # Using the ** they are unpacked into keyword arguments and 
+        # The anchor and position attributes are packed into a
+        # dictionary.
+        # Using the ** they are unpacked into keyword arguments and
         # used in the function
         # https://www.sitepoint.com/python/dictionaries-unpacking/
         self.rect = self.unlit_img.get_rect(**{self.anchor: self.position})
 
-    def handle_event(self, event) -> bool:
+    def handle_event(self, event: pygame.event.Event) -> bool:
         """
         Update hover state and return whether a click ran the action.
         """
@@ -49,7 +52,7 @@ class Button:
 
         return False
 
-    def draw(self, window) -> None:
+    def draw(self, window: pygame.Surface) -> None:
         """Draw the lit image when the mouse is over the button."""
         image = self.lit_img if self.hovering else self.unlit_img
         window.blit(image, self.rect)

@@ -1,4 +1,8 @@
-from dataclasses import dataclass, field
+"""Create the game window and manage the active screen."""
+
+from __future__ import annotations
+from dataclasses import dataclass
+from typing import ClassVar
 
 import pygame
 
@@ -7,24 +11,23 @@ from .screen.types.main_menu import MainMenu
 from .screen.types.map_selection import MapSelection
 from .screen.types.settings_menu import SettingsMenu
 
-# [TO DO] Store shared volume in App and pass it to SettingsMenu and Gameplay
-# so those screens can control music and sound effect volume.
-
 
 @dataclass
 class Volume:
+    """Store the volume settings shared by the game screens."""
+
     music_volume: float = 1.0
     sfx_volume: float = 1.0
 
 
 class App:
-    DISPLAY_WIDTH = 600
-    DISPLAY_HEIGHT = 350
+    """Manage the game window, screens, and main loop."""
 
-    def __init__(self):
-        '''
-        Initialize Pygame, the display, shared state, and the starting screen.
-        '''
+    DISPLAY_WIDTH: ClassVar[int] = 600
+    DISPLAY_HEIGHT: ClassVar[int] = 350
+
+    def __init__(self) -> None:
+        """Set up Pygame, the game window, and the main menu."""
         pygame.init()
 
         self.window = pygame.display.set_mode(
@@ -36,80 +39,75 @@ class App:
 
         self.screen_stack = [MainMenu(self)]
 
-    # ____SCREEN_TRANSITION_METHODS____
     @property
-    def current_screen(self):
-        '''
-        Return the screen at the top of the screen stack.
-        '''
+    def current_screen(self) -> Screen:
+        """Return the screen currently shown in the game window."""
         return self.screen_stack[-1]
 
-    def change_screen(self, screen):
-        '''
-        Replace the stack with a screen for a permanent transition.
-        '''
+    def change_screen(self, screen: Screen) -> None:
+        """Replace the current screens with the selected screen."""
         self.screen_stack[:] = [screen]
 
-    def push_screen(self, screen):
-        '''
-        Adds a new screen to the top of the screen stack.
-        '''
+    def push_screen(self, screen: Screen) -> None:
+        """Open another screen and suspend the screen underneath it."""
+        self.current_screen.on_suspend()
         self.screen_stack.append(screen)
 
-    def pop_screen(self):
-        '''
-        Removes the current screen from the screen stack.
-        '''
+    def pop_screen(self) -> None:
+        """Close the current screen and resume the previous screen."""
         if len(self.screen_stack) > 1:
             self.screen_stack.pop()
+            self.current_screen.on_resume()
 
-    # ____SCREEN_FETCHING_METHODS____
-
-    def get_main_menu(self):
-        '''
-        Changes the current screen to the main menu.
-        '''
+    def get_main_menu(self) -> None:
+        """Open the main menu."""
         self.change_screen(MainMenu(self))
 
-    def get_map_selection(self):
-        '''
-        Changes the current screen to the map selection menu.
-        '''
+    def get_map_selection(self) -> None:
+        """Open the map selection screen."""
         self.change_screen(MapSelection(self))
 
-    def get_gameplay(self, game_map):
-        '''
-        Changes the current screen to the gameplay screen.
-        '''
+    def get_gameplay(self, game_map: GameMap) -> None:
+        """Start a game on the selected map."""
         self.change_screen(Gameplay(self, game_map=game_map))
 
-    def get_settings(self):
-        '''
-        Adds the settings menu to the screen stack.
-        '''
+    def get_settings(self) -> None:
+        """Open settings above the current screen."""
         self.push_screen(SettingsMenu(self))
 
-    # ____RUN_METHOD____
-    def run(self):
-        '''
-        Handle events, update the screen, and draw each frame in the main loop.
-        '''
+    def run(self) -> None:
+        """
+        Handle input, update the active screen, and draw each frame.
+        """
         while self.running:
+            # Game clocks upper bound is 60fps
+            # Delta time is recalculated from miliseconds to seconds
+            # so it's easier to understand
             dt = self.clock.tick(60) / 1000
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.running = False
+                    break
 
                 self.current_screen.handle_event(event)
 
-            self.current_screen.draw(self.window)
+            if not self.running:
+                break
+
             self.current_screen.update(dt)
+            self.current_screen.draw(self.window)
 
             pygame.display.update()
 
         pygame.quit()
 
 
-game = App()
-game.run()
+def main() -> None:
+    """Create the application and start the game."""
+    game = App()
+    game.run()
+
+
+if __name__ == "__main__":
+    main()
