@@ -1,25 +1,30 @@
+"""Main menu screen"""
+
+from __future__ import annotations
 from pathlib import Path
+from typing import ClassVar
 
 import pygame
 
 from ..screen import Screen
 from ...ui.button import Button
+from ...ui.sprite import Sprite
 
 
 class MainMenu(Screen):
-    MENU_ASSET_DIR = Path(__file__).resolve(
+    """Display the play and settings buttons."""
+
+    MENU_ASSET_DIR: ClassVar[Path] = Path(__file__).resolve(
     ).parents[3] / "asset_files" / "menu"
 
-    MENU_IMG = pygame.image.load(MENU_ASSET_DIR / "main_menu.png")
-    PLAY_LIT_IMG = pygame.image.load(MENU_ASSET_DIR / "play_lit.png")
-    PLAY_UNLIT_IMG = pygame.image.load(MENU_ASSET_DIR / "play_unlit.png")
-    SETTING_UNLIT_IMG = pygame.image.load(MENU_ASSET_DIR / "setting_unlit.png")
-    SETTING_LIT_IMG = pygame.image.load(MENU_ASSET_DIR / "setting_lit.png")
+    MENU_IMG: ClassVar[pygame.image] =  pygame.image.load(MENU_ASSET_DIR / "main_menu.png")
+    PLAY_LIT_IMG: ClassVar[pygame.image] =  pygame.image.load(MENU_ASSET_DIR / "play_lit.png")
+    PLAY_UNLIT_IMG: ClassVar[pygame.image] = pygame.image.load(MENU_ASSET_DIR / "play_unlit.png")
+    SETTING_UNLIT_IMG: ClassVar[pygame.image] = pygame.image.load(MENU_ASSET_DIR / "setting_unlit.png")
+    SETTING_LIT_IMG: ClassVar[pygame.image] = pygame.image.load(MENU_ASSET_DIR / "setting_lit.png")
 
-    def __init__(self, app):
-        '''
-        Initialize the main menu and its play and settings buttons.
-        '''
+    def __init__(self, app: App) -> None:
+        """Create the main menu buttons and animation."""
         super().__init__(app)
 
         self.play_button = Button(
@@ -36,10 +41,13 @@ class MainMenu(Screen):
             action=self.app.get_settings,
         )
 
-    def handle_event(self, event):
-        '''
-        Handle menu shortcuts and forward input to the menu buttons.
-        '''
+        self.overlay_sprite = Sprite(
+            self.MENU_ASSET_DIR / "main_menu_overlay_sheet.png"
+        )
+        self.sprites = pygame.sprite.Group(self.overlay_sprite)
+
+    def handle_event(self, event: pygame.event) -> None:
+        """Handle the menu keys and button input."""
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_RETURN:
                 self.app.get_map_selection()
@@ -49,16 +57,13 @@ class MainMenu(Screen):
         self.play_button.handle_event(event)
         self.settings_button.handle_event(event)
 
-    def update(self, dt):
-        '''
-        Update the menu; it has no animated state to advance.
-        '''
-        pass
+    def update(self, dt: float) -> None:
+        """Update the menu animation."""
+        self.overlay_sprite.update(dt)
 
-    def draw(self, window):
-        '''
-        Draw the menu background and its buttons.
-        '''
+    def draw(self, window: pygame.display) -> None:
+        """Draw the menu background, buttons, and animation."""
         window.blit(self.MENU_IMG, (0, 0))
         self.play_button.draw(window)
         self.settings_button.draw(window)
+        self.sprites.draw(window)

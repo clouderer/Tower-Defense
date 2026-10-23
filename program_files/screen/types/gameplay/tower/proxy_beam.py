@@ -1,46 +1,46 @@
-from typing import ClassVar
+"""Define the Proxy Beam tower."""
+
 from pathlib import Path
+from typing import ClassVar
+
 
 import pygame
 
-from .tower import Tower
+from .tower import Tower, TowerLevel
 
 
 class ProxyBeam(Tower):
+    """Attack one enemy at long range."""
+
     NAME: ClassVar[str] = "PROXY_BEAM"
     COST: ClassVar[int] = 250
+    UPGRADE_LEVELS: ClassVar[tuple[TowerLevel, ...]] = (
+        TowerLevel(120, 22, 2000, 200),
+        TowerLevel(135, 33, 1650, 500),
+        TowerLevel(150, 49, 1300, None),
+    )
 
     PROXYBEAM_ASSET_DIR: ClassVar[Path] = Path(
         __file__).resolve().parents[5] / "asset_files" / "proxybeam"
+    RANGE_SHEETS: ClassVar[tuple[Path, ...]] = (
+        PROXYBEAM_ASSET_DIR / "proxy_level_1_120px_sheet.png",
+        PROXYBEAM_ASSET_DIR / "proxy_level_2_135px_sheet.png",
+        PROXYBEAM_ASSET_DIR / "proxy_level_3_150px_sheet.png",
+    )
 
-    PROXYBEAM_IMG: ClassVar[pygame.Surface] = pygame.image.load(
-        PROXYBEAM_ASSET_DIR / "proxybeam.png")
-
-    def __init__(self, tower_slot):
-        '''
-        Initialize the Proxy Beam's range, damage, cooldown, and overlay.
-        '''
+    def __init__(self, tower_slot: "TowerSlot") -> None:
+        """Load the Proxy Beam's images and place it on its slot."""
         super().__init__(tower_slot)
 
-        self.range = 120
-        self.damage = 20
-        self.attack_cooldown = 1500
+        self.image = pygame.image.load(
+            self.PROXYBEAM_ASSET_DIR / "proxybeam.png")
+        center_x, center_y = tower_slot.rect.center
+        self.offset_center = (center_x, center_y - 5)
+        self.rect = self.get_rect(center=self.offset_center)
 
         self.overlay_img = pygame.image.load(
             self.PROXYBEAM_ASSET_DIR / "proxybeam_overlay.png")
 
-    def draw(self, window):
-        '''
-        Draw the Proxy Beam, its glow overlay, and its attack range.
-        '''
-        center_x, center_y = self.rect.center
-        offset_center = (center_x, center_y - 5)
-
-        image_rect = self.PROXYBEAM_IMG.get_rect(center=offset_center)
-
-        window.blit(self.PROXYBEAM_IMG, image_rect)
-
-        self.overlay_img.set_alpha(round(self.glow_alpha))
-        window.blit(self.overlay_img, image_rect)
-
-        self.draw_range(window)
+        self.sidebar = pygame.image.load(
+            self.PROXYBEAM_ASSET_DIR / "proxy_sidebar.png"
+        )

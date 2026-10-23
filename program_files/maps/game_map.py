@@ -1,31 +1,25 @@
-"""
-Good idea would be to have maps with different sizes
-for our purposes all maps will have the same diemsnions:
-
-    350x600  <--- This size was selected as optimal by me
-
-    It is large enough for the game, and small enough to have it as a little
-    side window
-"""
+"""Keep the map image, route, and tower positions together."""
 
 from pathlib import Path
 
 import pygame
 
 
-# Directory to the Map assets
 MAP_ASSET_DIR = Path(__file__).resolve().parents[2] / "asset_files" / "maps"
 
 
 class GameMap:
-    '''
-    Class to manage a map choice
-    '''
+    """Store the image, enemy path, and tower slots for one map."""
 
-    def __init__(self, image, enemy_path, tower_positions):
-        '''
-        Store the map image, enemy route, and available tower locations.
-        '''
+    def __init__(
+        self,
+        image: pygame.Surface | Path,
+        enemy_path: tuple[tuple[int, int], ...],
+        tower_positions: tuple[tuple[int, int], ...],
+    ) -> None:
+        """
+        Store the map image, enemy path, and available tower slots.
+        """
         self.image = image
         self.width, self.height = image.get_size()
 
@@ -36,7 +30,7 @@ class GameMap:
         self.tower_positions = tower_positions
 
 
-# Hardcoded parameters for the NEON_GRID map
+# Enemy path points for the Neon Grid map.
 NEON_GRID_PATH = (
     (1, 176),
     (26, 176),
@@ -82,11 +76,6 @@ NEON_GRID_TOWER_POSITIONS = (
     (226, 126),
     (251, 126),
     (276, 126),
-    (301, 26),
-    (326, 26),
-    (351, 26),
-    (376, 26),
-    (401, 26),
     (301, 201),
     (326, 201),
     (351, 201),

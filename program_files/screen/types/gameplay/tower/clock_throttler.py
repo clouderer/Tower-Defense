@@ -1,61 +1,60 @@
-import math
+"""Define the Clock Throttler tower."""
 
-from typing import ClassVar
+import math
 from pathlib import Path
+from typing import ClassVar
+
 
 import pygame
 
-from .tower import Tower
+from ..enemy.enemy import Enemy
+from .tower import Tower, TowerLevel
 
 
 class ClockThrottler(Tower):
-    '''
-    Mid-range tower that damages enemies within its range.
-    '''
+    """Damage all enemies within the tower's range."""
     NAME: ClassVar[str] = "CLOCK_THROTTLER"
     COST: ClassVar[int] = 350
+    UPGRADE_LEVELS: ClassVar[tuple[TowerLevel, ...]] = (
+        TowerLevel(90, 2, 400, 175),
+        TowerLevel(105, 3, 350, 550),
+        TowerLevel(120, 4, 300, None),
+    )
 
     CLOCK_ASSET_DIR: ClassVar[Path] = Path(
         __file__).resolve().parents[5] / "asset_files" / "clockthrottler"
+    RANGE_SHEETS: ClassVar[tuple[Path, ...]] = (
+        CLOCK_ASSET_DIR / "clock_throttler_level_1_90px_sheet.png",
+        CLOCK_ASSET_DIR / "clock_throttler_level_2_105px_sheet.png",
+        CLOCK_ASSET_DIR / "clock_throttler_level_3_120px_sheet.png",
+    )
 
-    CLOCK_IMG: ClassVar[pygame.Surface] = pygame.image.load(
-        CLOCK_ASSET_DIR / "clock.png")
-
-    def __init__(self, tower_slot):
-        '''
-        Initialize tower stats, overlay image, and in-range enemy list.
-        '''
+    def __init__(self, tower_slot: "TowerSlot") -> None:
+        """
+        Load tower images and create the list of enemies within range.
+        """
         super().__init__(tower_slot)
 
-        self.range = 90
-        self.damage = 1
-        self.attack_cooldown = 250
+        self.image = pygame.image.load(
+            self.CLOCK_ASSET_DIR / "clock.png")
+
+        center_x, center_y = tower_slot.rect.center
+        self.offset_center = (center_x, center_y - 3)
+        self.rect = self.get_rect(center=self.offset_center)
 
         self.overlay_img = pygame.image.load(
             self.CLOCK_ASSET_DIR / "clock_overlay.png")
 
+        self.sidebar = pygame.image.load(
+            self.CLOCK_ASSET_DIR / "clock_sidebar.png")
+
         self.enemies_in_range = []
 
-    def draw(self, window):
-        '''
-        Draw the tower, its glow overlay, and its attack range.
-        '''
-        center_x, center_y = self.rect.center
-        offset_center = (center_x, center_y - 3)
-
-        image_rect = self.CLOCK_IMG.get_rect(center=offset_center)
-
-        window.blit(self.CLOCK_IMG, image_rect)
-
-        self.overlay_img.set_alpha(round(self.glow_alpha))
-        window.blit(self.overlay_img, image_rect)
-
-        self.draw_range(window)
-
-    def find_target(self, enemies):
-        '''
-        Refresh living enemies within range and the target used for drawing.
-        '''
+    def find_target(self, enemies: list[Enemy]) -> None:
+        """
+        Find living enemies within range and select a target for
+        drawing.
+        """
         self.enemies_in_range = []
 
         for enemy in enemies:
@@ -70,10 +69,16 @@ class ClockThrottler(Tower):
             if distance_to_enemy <= self.range:
                 self.enemies_in_range.append(enemy)
 
-    def attack(self, current_time) -> int:
-        '''
-        Damage all targets once per cooldown and return their combined rewards.
-        '''
+        self.target = min(
+            self.enemies_in_range,
+            key=lambda enemy: enemy.distance_to_finish,
+            default=None,
+        )
+
+    def attack(self, current_time: int) -> None:
+        """
+        Damage all targets after the cooldown and return their rewards.
+        """
         if current_time - self.last_attack_time < self.attack_cooldown:
             return 0
 
@@ -92,10 +97,6 @@ class ClockThrottler(Tower):
         reward = 0
 
         for enemy in enemies:
-            enemy.health -= self.damage
-
-            if enemy.health <= 0:
-                enemy.is_alive = False
-                reward += enemy.reward
+            reward += enemy.take_damage(self.damage)
 
         return reward

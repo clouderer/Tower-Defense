@@ -1,3 +1,7 @@
+"""Create a displayable sprite."""
+
+from __future__ import annotations
+
 import pygame
 
 
@@ -5,7 +9,14 @@ class Sprite(pygame.sprite.Sprite):
     """Animate frames loaded from a sprite sheet."""
 
     # Note the x_cnt, y_cnt, fps are set for the screen animations
-    def __init__(self, image, x_cnt=8, y_cnt=10, position=(0, 0), fps=18):
+    def __init__(
+        self,
+        image: Path,
+        x_cnt: int = 8,
+        y_cnt: int = 10,
+        position: tuple[int,int] = (0, 0),
+        fps:int = 18,
+    ) -> None:
         """
         Load the sheet and place the first frame at the given position.
         """
@@ -14,29 +25,33 @@ class Sprite(pygame.sprite.Sprite):
         self.frame_index = 0
         self.time = 0
         self.fps = fps
+        self.frame_duration = 1 / self.fps
 
         self.image = self.frames[0]
         self.rect = self.image.get_rect(topleft=position)
 
-    def update(self, dt):
+    def update(self, dt: float) -> None:
         """
         Advance the animation by the time passed since the last update.
         """
         self.time += dt
 
-        frame_duration = 1 / self.fps
-        frames_elapsed = int(self.time / frame_duration)
+        frames_elapsed = int(self.time / self.frame_duration)
         if frames_elapsed:
-            self.time -= frames_elapsed * frame_duration
+            self.time -= frames_elapsed * self.frame_duration
             self.frame_index = (
                 self.frame_index + frames_elapsed
             ) % len(self.frames)
             self.image = self.frames[self.frame_index]
 
-    # @generated "partially" GitHub Copilot: 
+    # @generated "partially" GitHub Copilot:
     # Recommended subsurface function.
     @staticmethod
-    def get_frames(image, x_cnt, y_cnt):
+    def get_frames(
+        image: Path,
+        x_cnt: int,
+        y_cnt: int,
+    ) -> list[pygame.image]:
         """Split a sprite sheet into frames by its columns and rows."""
         sheet = pygame.image.load(image).convert_alpha()
         sheet_width, sheet_height = sheet.get_size()

@@ -1,47 +1,43 @@
-import math
-from typing import ClassVar
+"""Define the BitBlaster tower."""
+
 from pathlib import Path
+from typing import ClassVar
+
 
 import pygame
 
-from .tower import Tower
+from .tower import Tower, TowerLevel
 
 
 class BitBlaster(Tower):
-    '''
-    Short-range rapid attack tower.
-    '''
+    """Attack quickly at short range."""
     NAME: ClassVar[str] = "BIT_BLASTER"
     COST: ClassVar[int] = 120
+    UPGRADE_LEVELS: ClassVar[tuple[TowerLevel, ...]] = (
+        TowerLevel(60, 2, 180, 100),
+        TowerLevel(70, 3, 150, 400),
+        TowerLevel(80, 5, 120, None),
+    )
 
     BITBLASTER_ASSET_DIR: ClassVar[Path] = Path(
         __file__).resolve().parents[5] / "asset_files" / "bitblaster"
+    RANGE_SHEETS: ClassVar[tuple[Path, ...]] = (
+        BITBLASTER_ASSET_DIR / "bitblaster_level_1_60px_sheet.png",
+        BITBLASTER_ASSET_DIR / "bitblaster_level_2_70px_sheet.png",
+        BITBLASTER_ASSET_DIR / "bitblaster_level_3_80px_sheet.png",
+    )
 
-    BITBLASTER_IMG: ClassVar[pygame.Surface] = pygame.image.load(
-        BITBLASTER_ASSET_DIR / "bitblaster.png")
-
-    def __init__(self, tower_slot):
-        '''
-        Initialize the BitBlaster's range, damage, cooldown, and overlay.
-        '''
+    def __init__(self, tower_slot: "TowerSlot") -> None:
+        """Load the BitBlaster's images and place it on its slot."""
         super().__init__(tower_slot)
 
-        self.range = 60
-        self.damage = 2
-        self.attack_cooldown = 150
+        self.image = pygame.image.load(
+            self.BITBLASTER_ASSET_DIR / "bitblaster.png")
+
+        self.rect = self.get_rect()
 
         self.overlay_img = pygame.image.load(
             self.BITBLASTER_ASSET_DIR / "bitblaster_overlay.png")
 
-    def draw(self, window):
-        '''
-        Draw the BitBlaster, its glow overlay, and its attack range.
-        '''
-        window.blit(self.BITBLASTER_IMG,
-                    (self.tower_slot.x_pos, self.tower_slot.y_pos))
-
-        self.overlay_img.set_alpha(round(self.glow_alpha))
-        window.blit(self.overlay_img,
-                    (self.tower_slot.x_pos, self.tower_slot.y_pos))
-
-        self.draw_range(window)
+        self.sidebar = pygame.image.load(
+            self.BITBLASTER_ASSET_DIR / "bitblaster_sidebar.png")

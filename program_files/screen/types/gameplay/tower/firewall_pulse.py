@@ -1,46 +1,44 @@
-from typing import ClassVar
+"""Define the Firewall Pulse tower."""
+
 from pathlib import Path
+from typing import ClassVar
+
 
 import pygame
 
-from .tower import Tower
+from .tower import Tower, TowerLevel
 
 
 class FirewallPulse(Tower):
+    """Attack one enemy within the tower's range."""
+
     NAME: ClassVar[str] = "FIREWALL_PULSE"
     COST: ClassVar[int] = 100
+    UPGRADE_LEVELS: ClassVar[tuple[TowerLevel, ...]] = (
+        TowerLevel(75, 6, 650, 80),
+        TowerLevel(85, 9, 525, 350),
+        TowerLevel(100, 13, 400, None),
+    )
 
     FIREWALL_ASSET_DIR: ClassVar[Path] = Path(
         __file__).resolve().parents[5] / "asset_files" / "firewallpulse"
+    RANGE_SHEETS: ClassVar[tuple[Path, ...]] = (
+        FIREWALL_ASSET_DIR / "firewall_level_1_75px_sheet.png",
+        FIREWALL_ASSET_DIR / "firewall_level_2_85px_sheet.png",
+        FIREWALL_ASSET_DIR / "firewall_level_3_100px_sheet.png",
+    )
 
-    FIREWALL_IMG: ClassVar[pygame.Surface] = pygame.image.load(
-        FIREWALL_ASSET_DIR / "firewall.png")
-
-    def __init__(self, tower_slot):
-        '''
-        Initialize the Firewall Pulse's range, damage, cooldown, and overlay.
-        '''
+    def __init__(self, tower_slot: "TowerSlot") -> None:
+        """Load the Firewall Pulse's images and place it on its slot."""
         super().__init__(tower_slot)
 
-        self.range = 75
-        self.damage = 5
-        self.attack_cooldown = 500
+        self.image = pygame.image.load(
+            self.FIREWALL_ASSET_DIR / "firewall.png")
+        self.rect = self.get_rect()
 
         self.overlay_img = pygame.image.load(
             self.FIREWALL_ASSET_DIR / "firewall_overlay.png")
 
-    def draw(self, window):
-        '''
-        Draw the Firewall Pulse, its glow overlay, and its attack range.
-        '''
-        center_x, center_y = self.rect.center
-        offset_center = (center_x, center_y)
-
-        image_rect = self.FIREWALL_IMG.get_rect(center=offset_center)
-
-        window.blit(self.FIREWALL_IMG, image_rect)
-
-        self.overlay_img.set_alpha(round(self.glow_alpha))
-        window.blit(self.overlay_img, image_rect)
-
-        self.draw_range(window)
+        self.sidebar = pygame.image.load(
+            self.FIREWALL_ASSET_DIR / "firewall_sidebar.png"
+        )

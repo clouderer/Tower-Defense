@@ -1,10 +1,11 @@
+"""Create a displayble text."""
+
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
 from typing import Optional, Union
 
 import pygame
-
 
 ColorValue = Union[
     str, pygame.Color, tuple[int, int, int],
@@ -21,7 +22,7 @@ PIXEL_FONT = str(
 # maxsize is set to one because only one font type is being loaded
 # @generated "fully" GitHub Copilot: Font loading function
 @lru_cache(maxsize=1)
-def get_font(font_path: Optional[str], font_size: int) -> pygame.font.Font:
+def get_font(font_path: Path, font_size: int) -> pygame.font.Font:
     """Reuse loaded fonts with the same file path and size."""
     return pygame.font.Font(font_path, font_size)
 
@@ -39,7 +40,7 @@ class TextObject:
     anchor: str = "center"
     position: tuple[int, int] = (0, 0)
 
-    def draw(self, window: pygame.Surface):
+    def draw(self, window: pygame.display) -> None:
         """Draw the text at its position using the selected anchor."""
         font = get_font(self.font, self.font_size)
         surface = font.render(
