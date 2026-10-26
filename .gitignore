@@ -14,6 +14,7 @@ tools/balance_results/visible_*/*.csv
 tools/balance_results/visible_*/summary.json
 tools/balance_results/2026-10-21_boss/*_audit*.json
 tools/balance_results/2026-10-21_boss/boss_isolated.json
+tools/balance_results/current*/
 
 # Local Piskel project copies
 .piskel-mcp/projects/*.json
