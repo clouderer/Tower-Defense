@@ -731,16 +731,15 @@ class Gameplay(Screen):
         elif self.wave_state.won:
             self.draw_wave_cleared(window)
             self.victory_text.draw(window)
-        elif self.sidebar_tower is not None:
+        elif (self.sidebar_tower is not None):
             self.draw_sidebar(window)
         elif self.wave_state.cleared:
             self.draw_wave_cleared(window)
         elif self.wave_state.next_ready:
             self.draw_wave_ready(window)
 
-        if self.can_skip_wave:
+        if (self.can_skip_wave and self.sidebar_tower is None):
             self.draw_skip_wave(window)
-
     def draw_sidebar(self, window: pygame.Surface) -> None:
         """
         Darken the map and draw the selected tower and its sidebar.
