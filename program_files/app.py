@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 from dataclasses import dataclass
+from ctypes import WinDLL, WinError, get_last_error, wintypes
 from typing import ClassVar
 
 import pygame
@@ -25,6 +26,8 @@ class App:
 
     DISPLAY_WIDTH: ClassVar[int] = 600
     DISPLAY_HEIGHT: ClassVar[int] = 350
+    WINDOW_X: ClassVar[int] = 100
+    WINDOW_Y: ClassVar[int] = 100
 
     def __init__(self) -> None:
         """Set up Pygame, the game window, and the main menu."""
@@ -32,6 +35,9 @@ class App:
 
         self.window = pygame.display.set_mode(
             (self.DISPLAY_WIDTH, self.DISPLAY_HEIGHT))
+
+        pygame.display.set_caption('CPU Overclock')
+
         self.clock = pygame.time.Clock()
         self.running = True
 
