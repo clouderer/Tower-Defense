@@ -230,7 +230,10 @@ class Tutorial(Gameplay):
         """Only accept the action being taught; never forward arbitrary input."""
         if self.phase == self.EXITING:
             return
-        if self.back_button.handle_event(event):
+        if (
+            self.sidebar_tower is None
+            and self.back_button.handle_event(event)
+        ):
             return
         if event.type == pygame.KEYDOWN and getattr(event, "repeat", False):
             return
@@ -385,6 +388,7 @@ class Tutorial(Gameplay):
         self.enemy_state.spawn_queue.append(EnemySpawn(Glitchworm, 1, wave))
         self.enemy_state.count = 0
         self.wave_state.active = True
+        self.wave_state.next_ready = False
         self.wave_state.active_waves.add(wave)
         self.wave_state.cleared = False
         self.wave_state.cleared_start_time = None
@@ -488,7 +492,8 @@ class Tutorial(Gameplay):
         super().draw(window)
         self.draw_highlight(window)
         self.draw_message(window)
-        self.back_button.draw(window)
+        if self.sidebar_tower is None:
+            self.back_button.draw(window)
 
     def draw_highlight(self, window: pygame.Surface) -> None:
         if self.phase in (self.CHOOSE_TOWER, self.RESELECT_TOWER):

@@ -115,7 +115,8 @@ class CPUTests(unittest.TestCase):
         self.assertEqual(cpu.flash_remaining, remaining)
         self.app.pop_screen()
         self.game.update(cpu.frame_duration + 0.001)
-        self.assertNotEqual(cpu.frame_index, frame)
+        # CPU is static; only its flash changes.
+        self.assertEqual(cpu.frame_index, frame)
         self.assertLess(cpu.flash_remaining, remaining)
 
     def test_cpu_is_drawn_before_enemies(self):

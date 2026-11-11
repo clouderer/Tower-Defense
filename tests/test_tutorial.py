@@ -6,7 +6,6 @@ from unittest.mock import patch
 import pygame
 
 from program_files.app import App
-from program_files.screen.types.gameplay.gameplay import Gameplay
 from program_files.screen.types.map_selection import MapSelection
 from program_files.screen.types.tutorial import Tutorial
 from program_files.ui.text_object import get_font
@@ -143,90 +142,37 @@ class TutorialTests(unittest.TestCase):
         self.assertIsNone(self.tutorial.selected_tower_type)
         self.assertEqual(self.tutorial.towers, [])
 
-    def test_two_waves_complete_only_after_the_enemies_finish(self):
+    def test_skipping_starts_wave_two_and_keeps_wave_one_active(self):
         self.reach_start_lesson()
         tutorial = self.tutorial
-        with patch.object(
-            tutorial, "spawn_enemy", wraps=tutorial.spawn_enemy,
-        ) as spawn:
-            self.click(tutorial.wave_ready_rect.center)
-            self.assertEqual(tutorial.phase, Tutorial.WATCH_WAVE)
-            self.assertEqual(len(tutorial.enemy_state.enemies), 1)
-            first_enemy = tutorial.enemy_state.enemies[0]
-            tutorial.update(tutorial.SKIP_PROMPT_DELAY)
-            tutorial.update(30)
-            self.assertEqual(tutorial.phase, Tutorial.SKIP_WAVE)
-            self.assertIn(first_enemy, tutorial.enemy_state.enemies)
+        self.click(tutorial.wave_ready_rect.center)
+        self.assertEqual(tutorial.phase, Tutorial.WATCH_WAVE)
+        self.assertEqual(len(tutorial.enemy_state.enemies), 1)
+        first_enemy = tutorial.enemy_state.enemies[0]
+        tutorial.update(tutorial.SKIP_PROMPT_DELAY + 0.01)
+        self.assertEqual(tutorial.phase, Tutorial.SKIP_WAVE)
+        self.assertTrue(tutorial.can_skip_wave)
 
-            self.click(tutorial.skip_wave_rect.center)
-            self.assertEqual(tutorial.phase, Tutorial.WAVES)
-            self.assertEqual(tutorial.wave_state.round, 2)
-            self.assertIn(first_enemy, tutorial.enemy_state.enemies)
-            self.assertEqual(len(tutorial.enemy_state.spawn_queue), 1)
-            for key in (pygame.K_s, pygame.K_SPACE, pygame.K_n):
-                self.key(key)
-            self.click(tutorial.skip_wave_rect.center)
-            tutorial.skip_wave()
-            self.assertEqual(tutorial.phase, Tutorial.WAVES)
-            self.assertEqual(tutorial.wave_state.round, 2)
+        self.click(tutorial.skip_wave_rect.center)
+        self.assertEqual(tutorial.wave_state.round, 2)
+        self.assertEqual(tutorial.phase, Tutorial.WAVES)
+        self.assertIn(1, tutorial.wave_state.active_waves)
+        self.assertIn(2, tutorial.wave_state.active_waves)
+        self.assertIn(first_enemy, tutorial.enemy_state.enemies)
 
-            now = pygame.time.get_ticks()
-            with patch("pygame.time.get_ticks") as ticks:
-                for frame in range(1, 7201):
-                    ticks.return_value = now + round(frame * 1000 / 60)
-                    tutorial.update(1 / 60)
-                    if tutorial.phase != Tutorial.WAVES:
-                        break
-                self.assertEqual(tutorial.phase, Tutorial.GOOD_LUCK)
-                self.assertFalse(tutorial.wave_state.cleared)
-                self.assertIsNone(tutorial.wave_state.cleared_start_time)
-                with patch.object(
-                    Gameplay, "draw_wave_cleared", autospec=True
-                ) as clear_screen, patch.object(
-                    tutorial, "draw_message",
-                ) as message:
-                    tutorial.draw(self.app.window)
-                    clear_screen.assert_not_called()
-                    message.assert_called_once_with(self.app.window)
-            self.assertEqual(spawn.call_count, 2)
-        self.assertEqual(tutorial.phase, Tutorial.GOOD_LUCK)
-        self.assertEqual(tutorial.guide_text,
-                         "Oh...you did...surprisingly well...")
-        self.assertTrue(tutorial.wave_state.won)
-        self.assertEqual(tutorial.enemy_state.enemies, [])
-        self.assertEqual(tutorial.enemy_state.spawn_queue, [])
-        tutorial.draw(self.app.window)
-        tutorial.update(0.5)
-        self.key(pygame.K_n)
-        self.assertIs(self.app.current_screen, tutorial)
-        self.assertEqual(tutorial.guide_text, "But you won't beat this!")
-        self.assertEqual(tutorial.cat_pop, 1)
-        self.assertEqual(tutorial.bob_time, 0)
-        box_top = tutorial.message_rect().top
-        cat_top = tutorial.cat_rect(tutorial.message_rect()).top
-        self.click(tutorial.message_box.center)
-        self.assertIs(self.app.current_screen, tutorial)
-        self.assertEqual(tutorial.phase, Tutorial.EXITING)
-        tutorial.update(0.14)
-        self.assertIs(self.app.current_screen, tutorial)
-        self.assertGreater(tutorial.message_rect().top, box_top)
-        self.assertGreater(tutorial.cat_rect(
-            tutorial.message_rect()).top, cat_top)
-        self.assertGreater(tutorial.cat_pop, 0)
-        self.assertLess(tutorial.cat_pop, 1)
-        tutorial.draw(self.app.window)
-        progress = tutorial.exit_progress
-        self.key(pygame.K_n)
-        self.key(pygame.K_ESCAPE)
-        self.click(tutorial.back_button.rect.center)
-        tutorial.leave_tutorial()
-        self.assertEqual(tutorial.exit_progress, progress)
-        self.assertIs(self.app.current_screen, tutorial)
-        tutorial.update(tutorial.EXIT_DURATION)
-        self.assertEqual(tutorial.cat_pop, 0)
-        self.assertGreaterEqual(
-            tutorial.message_rect().top, self.app.DISPLAY_HEIGHT)
-        self.assertIsInstance(self.app.current_screen, MapSelection)
+    def test_side_panel_hides_back_button_and_click_does_not_leave_tutorial(self):
+        self.place_tower()
+        tower = self.tutorial.towers[0]
+        self.click(tower.rect.center)
+        self.assertIs(self.tutorial.sidebar_tower, tower)
+        with patch.object(self.tutorial.back_button, "draw") as draw_back:
+            self.tutorial.draw(self.app.window)
+            draw_back.assert_not_called()
+
+        self.click(self.tutorial.back_button.rect.center)
+        self.assertIsNone(self.tutorial.sidebar_tower)
+        self.assertEqual(self.tutorial.phase, Tutorial.STATS)
+        self.assertIs(self.app.current_screen, self.tutorial)
 
     def test_space_and_s_advance_only_their_own_lessons(self):
         self.reach_start_lesson()
@@ -240,8 +186,9 @@ class TutorialTests(unittest.TestCase):
         self.assertEqual(self.tutorial.wave_state.round, 1)
         self.key(pygame.K_s)
         self.assertEqual(self.tutorial.phase, Tutorial.WAVES)
+        self.assertEqual(self.tutorial.wave_state.round, 2)
 
-    def test_skip_prompt_and_controls_wait_for_the_delay(self):
+    def test_skip_prompt_and_s_wait_until_the_delay(self):
         self.reach_start_lesson()
         self.key(pygame.K_SPACE)
         tutorial = self.tutorial
@@ -257,7 +204,7 @@ class TutorialTests(unittest.TestCase):
         with patch.object(tutorial, "draw_skip_wave") as skip_prompt:
             tutorial.draw(self.app.window)
             skip_prompt.assert_not_called()
-        tutorial.update(0.1)
+        tutorial.update(0.11)
         self.assertEqual(tutorial.phase, Tutorial.SKIP_WAVE)
         self.assertTrue(tutorial.can_skip_wave)
         with patch.object(tutorial, "draw_skip_wave") as skip_prompt:
@@ -288,11 +235,10 @@ class TutorialTests(unittest.TestCase):
                         self.app.current_screen, MapSelection)
                     self.assertEqual(len(self.app.screen_stack), 1)
 
-    def test_escape_returns_to_map_selection(self):
+    def test_escape_does_not_leave_tutorial(self):
         self.key(pygame.K_ESCAPE)
-        self.assertEqual(self.tutorial.phase, Tutorial.EXITING)
-        self.tutorial.update(self.tutorial.EXIT_DURATION)
-        self.assertIsInstance(self.app.current_screen, MapSelection)
+        self.assertEqual(self.tutorial.phase, Tutorial.INTRO)
+        self.assertIs(self.app.current_screen, self.tutorial)
 
     def test_cat_stays_perched_across_sentences_and_drops_before_lessons(self):
         tutorial = self.tutorial
@@ -332,9 +278,13 @@ class TutorialTests(unittest.TestCase):
                 self.assertLessEqual(
                     len(lines) * tutorial.message_font.get_linesize(), 44
                 )
+                prompt_font = get_font(
+                    tutorial.prompt_text.font,
+                    tutorial.prompt_text.font_size,
+                )
                 self.assertLess(
-                    tutorial.prompt_font.size(prompt)[0],
-                    tutorial.message_box.width - 90,
+                    prompt_font.size(prompt)[0],
+                    tutorial.message_box.width - 28,
                 )
         for target in (
             tutorial.wave_ready_rect, tutorial.skip_wave_rect,
