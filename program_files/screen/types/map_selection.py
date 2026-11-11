@@ -10,6 +10,7 @@ from ..screen import Screen
 from ...maps.game_map import GameMap, NEON_GRID_MAP
 from ...ui.button import Button
 from ...ui.sprite import Sprite
+from .tutorial import Tutorial
 
 
 class MapOption:
@@ -48,6 +49,10 @@ class MapSelection(Screen):
         MAP_OPT_ASSET_DIR / "back_lit.png")
     BACK_BUTTON_UNLIT_IMG: ClassVar[pygame.image] = pygame.image.load(
         MAP_OPT_ASSET_DIR / "back_unlit.png")
+    TUTORIAL_BUTTON_LIT_IMG: ClassVar[pygame.image] = pygame.image.load(
+        MAP_OPT_ASSET_DIR / "tutorial_lit.png")
+    TUTORIAL_BUTTON_UNLIT_IMG: ClassVar[pygame.image] = pygame.image.load(
+        MAP_OPT_ASSET_DIR / "tutorial_unlit.png")
 
     # These offsets are used for offsetting the map 
     # into the frame positions.
@@ -79,6 +84,13 @@ class MapSelection(Screen):
             ),
             # Additional maps have not been added yet.
         ]
+        self.tutorial_button = Button(
+            position=(300, 296),
+            anchor="midtop",
+            unlit_img=self.TUTORIAL_BUTTON_UNLIT_IMG,
+            lit_img=self.TUTORIAL_BUTTON_LIT_IMG,
+            action=lambda: self.app.push_screen(Tutorial(self.app, NEON_GRID_MAP)),
+        )
 
         self.back_button = Button(
             position=(12, 12),
@@ -94,8 +106,10 @@ class MapSelection(Screen):
 
     def handle_event(self, event: pygame.event) -> None:
         """
-        Highlight map options and handle map and back button clicks.
+        Highlight the map and tutorial options and handle their clicks.
         """
+        if self.tutorial_button.handle_event(event):
+            return
         if event.type == pygame.MOUSEMOTION:
             for map_opt in self.map_options:
                 map_opt.hovering = map_opt.rect.collidepoint(event.pos)
@@ -129,4 +143,5 @@ class MapSelection(Screen):
             else:
                 window.blit(self.FRAME_UNLIT_IMG, frame_position)
 
+        self.tutorial_button.draw(window)
         self.back_button.draw(window)

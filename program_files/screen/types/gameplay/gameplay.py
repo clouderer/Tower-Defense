@@ -11,6 +11,7 @@ from ....maps.game_map import GameMap
 from ....ui.button import Button
 from ....ui.text_object import TextObject
 from ...screen import Screen
+from .cpu import CPU
 from .enemy.enemy import Enemy
 from .enemy.leaked_file import LeakedFile
 from .enemy.trojan_file import TrojanFile
@@ -155,6 +156,7 @@ class Gameplay(Screen):
         text.
         """
         super().__init__(app)
+        self.audio = getattr(app, "audio", None)
         self.game_map = game_map
 
         self.wave_state = WaveState()
@@ -169,12 +171,15 @@ class Gameplay(Screen):
         )
 
         self.health = self.MAX_HEALTH
+        self.cpu = CPU(self.game_map.exit_position)
 
         self.money = self.START_MONEY
         self.insufficient_funds = False
         self.insufficient_funds_start_time = 0
 
         self.towers: list[Tower] = []
+        self.projectiles = pygame.sprite.Group()
+        self.impacts = pygame.sprite.Group()
         self.load_tower_slots()
         self.selected_tower_type = None
         self.tower_selection_rects = self.make_selection_rects()
@@ -450,6 +455,8 @@ class Gameplay(Screen):
         if not self.paused:
             self.paused = True
             self.pause_start_time = now
+            if self.audio is not None:
+                self.audio.stop()
             return
 
         paused_duration = now - self.pause_start_time
@@ -487,6 +494,7 @@ class Gameplay(Screen):
         self.money += int(round(tower.total_cost * 1))
         tower.tower_slot.occupied = False
         tower.tower_slot.selected = False
+        tower.stop_attack_effect()
         del self.towers[index]
         self.sidebar_tower = None
         self.sidebar_tower_idx = None
@@ -695,10 +703,12 @@ class Gameplay(Screen):
         """
         window.blit(self.game_map.image, (0, 0))
 
+        self.draw_cpu(window)
         self.draw_tower_slots(window)
         self.draw_placement_preview(window)
         self.draw_towers(window)
         self.draw_enemies(window)
+        self.draw_projectiles(window)
 
         self.draw_health_power(window)
 
@@ -772,6 +782,10 @@ class Gameplay(Screen):
             window.blit(self.SELECTION_OVERLAY_IMG, pos)
         text.draw(window)
 
+    def draw_cpu(self, window: pygame.Surface) -> None:
+        """Draw the CPU and its health overlays beneath the enemies."""
+        self.cpu.draw(window, self.health, self.MAX_HEALTH)
+
     def draw_tower_slots(self, window: pygame.Surface) -> None:
         """Draw all tower slots."""
         for slot in self.tower_slots:
@@ -787,6 +801,13 @@ class Gameplay(Screen):
         """Draw all placed towers."""
         for tower in self.towers:
             tower.draw(window)
+
+    def draw_projectiles(self, window: pygame.Surface) -> None:
+        """Draw travelling shots and hits above the board."""
+        self.projectiles.draw(window)
+        for tower in self.towers:
+            tower.draw_attack_effect(window)
+        self.impacts.draw(window)
 
     def draw_placement_preview(self, window: pygame.Surface) -> None:
         """Draw the hovered tower and its range at low opacity."""
@@ -858,7 +879,10 @@ class Gameplay(Screen):
         Advance gameplay timers, enemies, towers, and wave state for one
         frame.
         """
-        if self.game_over or self.paused or self.wave_state.won:
+        if self.paused:
+            return
+        self.cpu.update(dt)
+        if self.game_over or self.wave_state.won:
             return
 
         current_time = pygame.time.get_ticks()
@@ -909,19 +933,48 @@ class Gameplay(Screen):
 
             if enemy.reached_end and enemy.is_alive:
                 self.health -= enemy.health
+                self.cpu.flash()
                 enemy.is_alive = False
+
+        self.update_projectiles(dt)
 
         for tower in self.towers:
             tower.find_target(self.enemy_state.enemies)
+            previous_attack_time = tower.last_attack_time
             self.money += tower.attack(current_time)
+            self.projectiles.add(*tower.pending_projectiles)
+            tower.pending_projectiles.clear()
+            if (
+                self.audio is not None
+                and tower.last_attack_time != previous_attack_time
+            ):
+                self.audio.play_shot(tower.NAME)
+
+        if self.audio is not None:
+            self.audio.set_clock_active(any(
+                isinstance(tower, ClockThrottler)
+                and any(
+                    enemy.is_alive and not enemy.reached_end
+                    for enemy in tower.enemies_in_range
+                )
+                for tower in self.towers
+            ))
 
         self.enemy_state.enemies = [
             enemy for enemy in self.enemy_state.enemies
             if enemy.is_alive
         ]
 
+    def update_projectiles(self, dt: float) -> None:
+        """Move shots and collect rewards when they kill an enemy."""
+        for projectile in self.projectiles.sprites():
+            self.money += projectile.update(dt)
+            if projectile.impact is not None:
+                self.impacts.add(projectile.impact)
+
     def update_towers(self, dt: float) -> None:
-        """Update each placed tower."""
+        """Update the placed towers and finish impact animations."""
+        self.impacts.update(dt)
         for tower in self.towers:
             tower.update(dt)
 
@@ -939,8 +992,17 @@ class Gameplay(Screen):
 
     def set_game_over(self) -> None:
         """Enter the game-over state and remove remaining enemies."""
+        if self.game_over:
+            return
         self.health = 0
         self.game_over = True
+        self.projectiles.empty()
+        self.impacts.empty()
+        for tower in self.towers:
+            tower.stop_attack_effect()
+        if self.audio is not None:
+            self.audio.stop()
+            self.audio.play_event("GAME_OVER")
         self.wave_state.cleared = False
         self.enemy_state.enemies = []
 
@@ -980,6 +1042,8 @@ class Gameplay(Screen):
         self.wave_state.cleared = True
         self.wave_state.cleared_start_time = current_time
         self.reward_wave(self.wave_state.round)
+        if self.audio is not None:
+            self.audio.play_event("WAVE_CLEARED")
 
     def set_next_wave_ready(self, current_time: int) -> None:
         """

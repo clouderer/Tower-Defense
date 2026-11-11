@@ -77,19 +77,19 @@ class TutorialTests(unittest.TestCase):
         self.tutorial = tutorial
         self.assertEqual(tutorial.phase, Tutorial.ENTERING)
         self.assertGreaterEqual(
-            tutorial._message_rect().top, self.app.DISPLAY_HEIGHT)
+            tutorial.message_rect().top, self.app.DISPLAY_HEIGHT)
         self.key(pygame.K_n)
         self.click((300, 175))
         tutorial.update(tutorial.ENTER_DURATION / 2)
-        self.assertGreater(tutorial._message_rect().top,
+        self.assertGreater(tutorial.message_rect().top,
                            tutorial.message_box.top)
-        self.assertLess(tutorial._message_rect().top, self.app.DISPLAY_HEIGHT)
+        self.assertLess(tutorial.message_rect().top, self.app.DISPLAY_HEIGHT)
         tutorial.draw(self.app.window)
         self.key(pygame.K_n)
         self.assertEqual(tutorial.intro_index, 0)
         tutorial.update(tutorial.ENTER_DURATION / 2)
         self.assertEqual(tutorial.phase, Tutorial.INTRO)
-        self.assertEqual(tutorial._message_rect(), tutorial.message_box)
+        self.assertEqual(tutorial.message_rect(), tutorial.message_box)
         self.assertEqual(tutorial.guide_text, "Oh mreow!!!")
         self.key(pygame.K_n)
         self.assertEqual(tutorial.intro_index, 1)
@@ -183,7 +183,7 @@ class TutorialTests(unittest.TestCase):
                 with patch.object(
                     Gameplay, "draw_wave_cleared", autospec=True
                 ) as clear_screen, patch.object(
-                    tutorial, "_draw_message",
+                    tutorial, "draw_message",
                 ) as message:
                     tutorial.draw(self.app.window)
                     clear_screen.assert_not_called()
@@ -202,16 +202,16 @@ class TutorialTests(unittest.TestCase):
         self.assertEqual(tutorial.guide_text, "But you won't beat this!")
         self.assertEqual(tutorial.cat_pop, 1)
         self.assertEqual(tutorial.bob_time, 0)
-        box_top = tutorial._message_rect().top
-        cat_top = tutorial._cat_rect(tutorial._message_rect()).top
+        box_top = tutorial.message_rect().top
+        cat_top = tutorial.cat_rect(tutorial.message_rect()).top
         self.click(tutorial.message_box.center)
         self.assertIs(self.app.current_screen, tutorial)
         self.assertEqual(tutorial.phase, Tutorial.EXITING)
         tutorial.update(0.14)
         self.assertIs(self.app.current_screen, tutorial)
-        self.assertGreater(tutorial._message_rect().top, box_top)
-        self.assertGreater(tutorial._cat_rect(
-            tutorial._message_rect()).top, cat_top)
+        self.assertGreater(tutorial.message_rect().top, box_top)
+        self.assertGreater(tutorial.cat_rect(
+            tutorial.message_rect()).top, cat_top)
         self.assertGreater(tutorial.cat_pop, 0)
         self.assertLess(tutorial.cat_pop, 1)
         tutorial.draw(self.app.window)
@@ -225,7 +225,7 @@ class TutorialTests(unittest.TestCase):
         tutorial.update(tutorial.EXIT_DURATION)
         self.assertEqual(tutorial.cat_pop, 0)
         self.assertGreaterEqual(
-            tutorial._message_rect().top, self.app.DISPLAY_HEIGHT)
+            tutorial.message_rect().top, self.app.DISPLAY_HEIGHT)
         self.assertIsInstance(self.app.current_screen, MapSelection)
 
     def test_space_and_s_advance_only_their_own_lessons(self):
@@ -300,14 +300,14 @@ class TutorialTests(unittest.TestCase):
         self.key(pygame.K_n)
         tutorial.update(0.4)
         self.assertEqual(tutorial.cat_pop, 1)
-        bubble = tutorial._message_rect()
-        self.assertEqual(tutorial._cat_rect(bubble).bottom, bubble.top + 8)
+        bubble = tutorial.message_rect()
+        self.assertEqual(tutorial.cat_rect(bubble).bottom, bubble.top + 8)
         self.key(pygame.K_n)
         self.assertEqual(tutorial.cat_pop, 1)
         tutorial.update(0.1)
-        bubble = tutorial._message_rect()
+        bubble = tutorial.message_rect()
         self.assertLess(bubble.top, tutorial.message_box.top)
-        self.assertEqual(tutorial._cat_rect(bubble).bottom, bubble.top + 8)
+        self.assertEqual(tutorial.cat_rect(bubble).bottom, bubble.top + 8)
         for _ in range(4):
             self.key(pygame.K_n)
         self.assertEqual(tutorial.phase, Tutorial.INTRO_OUT)
@@ -328,7 +328,7 @@ class TutorialTests(unittest.TestCase):
         for message, prompt in messages:
             with self.subTest(message=message):
                 tutorial.guide_text = message
-                lines = tutorial._wrapped_message()
+                lines = tutorial.wrapped_message()
                 self.assertLessEqual(
                     len(lines) * tutorial.message_font.get_linesize(), 44
                 )

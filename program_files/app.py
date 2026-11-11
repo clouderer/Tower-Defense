@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 from dataclasses import dataclass
-from ctypes import WinDLL, WinError, get_last_error, wintypes
+from pathlib import Path
 from typing import ClassVar
 
 import pygame
 
+from .audio import GameAudio
 from .screen.types.gameplay.gameplay import Gameplay
 from .screen.types.main_menu import MainMenu
 from .screen.types.map_selection import MapSelection
@@ -42,6 +43,14 @@ class App:
         self.running = True
 
         self.volume = Volume()
+        self.audio = GameAudio(self.volume.sfx_volume)
+        music_path = (
+            Path(__file__).resolve().parent.parent
+            / 'asset_files' / 'sfx' / 'music' / '05_circuit_pulse.wav'
+        )
+        pygame.mixer.music.load(str(music_path))
+        pygame.mixer.music.set_volume(self.volume.music_volume)
+        pygame.mixer.music.play(-1)
 
         self.screen_stack = [MainMenu(self)]
 
@@ -52,10 +61,12 @@ class App:
 
     def change_screen(self, screen: Screen) -> None:
         """Replace the current screens with the selected screen."""
+        self.audio.stop()
         self.screen_stack[:] = [screen]
 
     def push_screen(self, screen: Screen) -> None:
         """Open another screen and suspend the screen underneath it."""
+        self.audio.stop()
         self.current_screen.on_suspend()
         self.screen_stack.append(screen)
 

@@ -5,12 +5,13 @@
 
 from pathlib import Path
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import pygame
 
 from program_files.app import App
 from program_files.maps.game_map import NEON_GRID_MAP
+from program_files.screen.types.gameplay.enemy.enemy import Enemy
 from program_files.screen.types.gameplay.tower.bitblaster import BitBlaster
 from program_files.screen.types.gameplay.tower.clock_throttler import (
     ClockThrottler,
@@ -183,6 +184,56 @@ class TowerRangeTests(unittest.TestCase):
                 ) as draw_range:
                     gameplay.draw(app.window)
                 draw_range.assert_not_called()
+
+    def test_clock_pulse_keeps_moving_and_fades_with_living_targets(self):
+        """Animate the whole pulse while its brightness changes."""
+        tower = ClockThrottler(TowerSlot((180, 140)))
+        pulse = tower.pulse_sprite
+        self.assertEqual(len(pulse.frames), 60)
+        self.assertEqual(pulse.image.get_size(), (180, 180))
+        tower.update(0.1)
+        self.assertGreater(pulse.frame_index, 0)
+        self.assertEqual(tower.pulse_alpha, tower.PULSE_IDLE_ALPHA)
+
+        x, y = tower.rect.center
+        enemy = Enemy(((x, y), (x + 1000, y)))
+        tower.find_target([enemy])
+        previous_frame = pulse.frame_index
+        tower.update(0.2)
+        self.assertGreater(pulse.frame_index, previous_frame)
+        self.assertGreater(tower.pulse_alpha, tower.PULSE_IDLE_ALPHA)
+        tower.update(0.5)
+        self.assertEqual(tower.pulse_alpha, tower.PULSE_ACTIVE_ALPHA)
+
+        enemy.is_alive = False
+        tower.update(0.1)
+        self.assertLess(tower.pulse_alpha, tower.PULSE_ACTIVE_ALPHA)
+        tower.find_target([])
+        tower.update(0.5)
+        self.assertEqual(tower.pulse_alpha, tower.PULSE_IDLE_ALPHA)
+        before_loop = pulse.frame_index
+        tower.update(len(pulse.frames) / pulse.fps)
+        self.assertEqual(pulse.frame_index, before_loop)
+
+    def test_clock_pulse_draws_idle_and_scales_with_upgrades(self):
+        """Draw the idle pulse without changing its original frames."""
+        tower = ClockThrottler(TowerSlot((180, 140)))
+        pulse = tower.pulse_sprite
+        original_alpha = pulse.image.get_alpha()
+        for level in (1, 2, 3):
+            with self.subTest(level=level):
+                window = Mock(spec=pygame.Surface)
+                tower.draw(window)
+                image, rect = window.blit.call_args_list[0].args
+                self.assertEqual(image.get_size(), (tower.range * 2,) * 2)
+                self.assertEqual(rect.center, tower.tower_slot.rect.center)
+                self.assertEqual(image.get_alpha(), tower.PULSE_IDLE_ALPHA)
+                self.assertIs(window.blit.call_args_list[1].args[0],
+                              tower.image)
+                self.assertEqual(pulse.image.get_alpha(), original_alpha)
+                self.assertIs(tower.pulse_sprite, pulse)
+                if level < 3:
+                    self.assertTrue(tower.upgrade())
 
 
 if __name__ == "__main__":

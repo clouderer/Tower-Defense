@@ -22,6 +22,12 @@ class FirewallPulse(Tower):
 
     FIREWALL_ASSET_DIR: ClassVar[Path] = Path(
         __file__).resolve().parents[5] / "asset_files" / "firewallpulse"
+    PROJECTILE_SHEET: ClassVar[Path] = (
+        FIREWALL_ASSET_DIR / "firewall_projectile_sheet.png"
+    )
+    IMPACT_SHEET: ClassVar[Path] = (
+        FIREWALL_ASSET_DIR / "firewall_impact_sheet.png"
+    )
     RANGE_SHEETS: ClassVar[tuple[Path, ...]] = (
         FIREWALL_ASSET_DIR / "firewall_level_1_75px_sheet.png",
         FIREWALL_ASSET_DIR / "firewall_level_2_85px_sheet.png",

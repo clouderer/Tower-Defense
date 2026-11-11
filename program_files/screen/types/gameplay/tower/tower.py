@@ -8,6 +8,7 @@ from typing import ClassVar, Optional
 import pygame
 
 from ..enemy.enemy import Enemy
+from ..projectile import Projectile
 from ..tower_slot.tower_slot import TowerSlot
 from .....ui.sprite import Sprite
 from .....ui.text_object import TextObject
@@ -35,6 +36,14 @@ class Tower:
 
     NAME: ClassVar[str] = "BASIC TOWER"
     COST: ClassVar[int] = 80
+    PROJECTILE_SHEET: ClassVar[Path | None] = None
+    PROJECTILE_SPEED: ClassVar[float] = 240.0
+    PROJECTILE_COLUMNS: ClassVar[int] = 8
+    PROJECTILE_FPS: ClassVar[int] = 30
+    IMPACT_SHEET: ClassVar[Path | None] = None
+    IMPACT_COLUMNS: ClassVar[int] = 6
+    IMPACT_ROWS: ClassVar[int] = 1
+    IMPACT_FPS: ClassVar[int] = 30
     RANGE_SHEETS: ClassVar[tuple[Path, ...]] = ()
     RANGE_SHEET_COLUMNS: ClassVar[int] = 6
     RANGE_SHEET_ROWS: ClassVar[int] = 4
@@ -64,6 +73,7 @@ class Tower:
         self.last_attack_time = pygame.time.get_ticks()
 
         self.target = None
+        self.pending_projectiles: list[Projectile] = []
 
         self.glow_alpha = 0
 
@@ -134,6 +144,14 @@ class Tower:
         In usual cases the underlay is a radius sprite.
         """
         self.sprites.draw(window)
+
+    def draw_attack_effect(self, window: pygame.Surface) -> None:
+        """Draw a tower's sustained attack effect when it has one."""
+        pass
+
+    def stop_attack_effect(self) -> None:
+        """Clear a sustained effect when the tower stops being used."""
+        pass
 
     def draw_sidebar(self, window: pygame.Surface) -> None:
         """Draw the tower's stats, level, upgrade cost, and cooldown."""
@@ -276,10 +294,28 @@ class Tower:
 
         return time_since_last_attack >= self.attack_cooldown
 
-    def attack(self, current_time: int) -> None:
+    def create_projectile(self, target: Enemy) -> Projectile | None:
+        """Create a travelling shot when this tower has a shot sheet."""
+        if self.PROJECTILE_SHEET is None:
+            return None
+        return Projectile(
+            self.PROJECTILE_SHEET,
+            self.rect.center,
+            target,
+            self.damage,
+            self.PROJECTILE_SPEED,
+            columns=self.PROJECTILE_COLUMNS,
+            fps=self.PROJECTILE_FPS,
+            impact_sheet=self.IMPACT_SHEET,
+            impact_columns=self.IMPACT_COLUMNS,
+            impact_rows=self.IMPACT_ROWS,
+            impact_fps=self.IMPACT_FPS,
+        )
+
+    def attack(self, current_time: int) -> int:
         """
-        Damage the target after the cooldown and return its reward if
-        killed.
+        Fire after the cooldown, or damage the target without a shot
+        sheet. Travelling shots apply their damage when they arrive.
         """
         if (
             self.target is not None
@@ -288,6 +324,10 @@ class Tower:
             and current_time - self.last_attack_time >= self.attack_cooldown
         ):
             self.last_attack_time = current_time
+            projectile = self.create_projectile(self.target)
+            if projectile is not None:
+                self.pending_projectiles.append(projectile)
+                return 0
             return self.target.take_damage(self.damage)
 
         return 0

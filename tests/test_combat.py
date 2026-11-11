@@ -50,7 +50,7 @@ class CombatRegressionTests(unittest.TestCase):
 
     def test_enemy_movement_keeps_distance_across_corners(self):
         """Keep movement distance equal when updates cross corners."""
-        path = [(0, 0), (5, 0), (5, 5), (0, 5), (0, -1000)]
+        path = ((0, 0), (5, 0), (5, 5), (0, 5), (0, -1000))
 
         for enemy_type in ENEMY_TYPES:
             for level in (1, len(enemy_type.LEVELS)):
@@ -79,7 +79,7 @@ class CombatRegressionTests(unittest.TestCase):
 
     def test_enemy_can_finish_route_in_one_update(self):
         """Finish the route when an update covers its full length."""
-        path = [(0, 0), (5, 0), (5, 5), (0, 5)]
+        path = ((0, 0), (5, 0), (5, 5), (0, 5))
 
         for enemy_type in ENEMY_TYPES:
             with self.subTest(enemy=enemy_type.__name__):
@@ -95,7 +95,7 @@ class CombatRegressionTests(unittest.TestCase):
 
     def test_trojan_cap_does_not_build_up_spawnling_bursts(self):
         """Keep the spawn interval after a Trojan reaches its limit."""
-        path = [(0, 0), (1000000, 0)]
+        path = ((0, 0), (1000000, 0))
 
         for level in range(1, len(TrojanFile.LEVELS) + 1):
             with self.subTest(level=level):
@@ -131,20 +131,20 @@ class CombatRegressionTests(unittest.TestCase):
         tower = ClockThrottler(TowerSlot((20, 20)))
         center_x, center_y = tower.rect.center
         farther_from_exit = Glitchworm(
-            [(center_x, center_y), (center_x + 100, center_y)]
+            ((center_x, center_y), (center_x + 100, center_y))
         )
         nearer_to_exit = Glitchworm(
-            [(center_x + 1, center_y), (center_x + 50, center_y)]
+            ((center_x + 1, center_y), (center_x + 50, center_y))
         )
         outside_range = Glitchworm(
-            [(center_x + 1000, center_y), (center_x + 1001, center_y)]
+            ((center_x + 1000, center_y), (center_x + 1001, center_y))
         )
         dead_enemy = Glitchworm(
-            [(center_x, center_y), (center_x + 1, center_y)]
+            ((center_x, center_y), (center_x + 1, center_y))
         )
         dead_enemy.is_alive = False
         finished_enemy = Glitchworm(
-            [(center_x, center_y), (center_x + 1, center_y)]
+            ((center_x, center_y), (center_x + 1, center_y))
         )
         finished_enemy.reached_end = True
 

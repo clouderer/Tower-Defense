@@ -36,7 +36,7 @@ REGULAR_ENEMY_TYPES = (
     Glitchworm, LeakedFile, PingFlooder, Ransomware, TrojanFile,
 )
 TOWER_TYPES = (BitBlaster, ClockThrottler, FirewallPulse, ProxyBeam)
-LONG_PATH = [(0, 0), (1000000, 0)]
+LONG_PATH = ((0, 0), (1000000, 0))
 
 
 class BossTests(unittest.TestCase):
@@ -214,11 +214,18 @@ class BossTests(unittest.TestCase):
                     tower.last_attack_time = 0
                     health = enemy.health
 
+                    def attack_and_resolve(current_time):
+                        reward = tower.attack(current_time)
+                        for projectile in tower.pending_projectiles:
+                            reward += projectile.update(1)
+                        tower.pending_projectiles.clear()
+                        return reward
+
                     with patch.object(
                         enemy, "take_damage", wraps=enemy.take_damage
                     ) as take_damage:
                         self.assertEqual(
-                            tower.attack(tower.attack_cooldown), 0
+                            attack_and_resolve(tower.attack_cooldown), 0
                         )
                         take_damage.assert_called_once_with(tower.damage)
                         self.assertEqual(
@@ -226,13 +233,13 @@ class BossTests(unittest.TestCase):
                         )
                         enemy.health = tower.damage * multiplier
                         self.assertEqual(
-                            tower.attack(tower.attack_cooldown * 2),
+                            attack_and_resolve(tower.attack_cooldown * 2),
                             enemy.reward,
                         )
                         self.assertEqual(enemy.health, 0)
                         self.assertFalse(enemy.is_alive)
                         self.assertEqual(
-                            tower.attack(tower.attack_cooldown * 3), 0
+                            attack_and_resolve(tower.attack_cooldown * 3), 0
                         )
                         self.assertEqual(take_damage.call_count, 2)
 

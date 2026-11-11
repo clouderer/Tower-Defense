@@ -29,7 +29,7 @@ class LeakedFile(Enemy):
 
     def __init__(
         self,
-        path: list[tuple[float, float]] | tuple[tuple[float, float], ...],
+        path: tuple[tuple[float, float], ...],
         level: int = 1,
     ) -> None:
         """Set the spawnling's level and load its image."""

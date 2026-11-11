@@ -24,15 +24,9 @@ class Tutorial(Gameplay):
     CAT_IMG = pygame.image.load(ASSET_DIR / "cat.png")
     BACK_LIT_IMG = pygame.image.load(ASSET_DIR / "back_lit.png")
     BACK_UNLIT_IMG = pygame.image.load(ASSET_DIR / "back_unlit.png")
+
     CONTINUE_PROMPT = "PRESS [N] OR CLICK"
-    OUTRO_LINES = (
-        "Oh...you did...surprisingly well...",
-        "But you won't beat this!",
-    )
-    SKIP_PROMPT_DELAY = 5.0
-    ENTER_DURATION = 0.45
-    EXIT_DURATION = 0.45
-    CAT_REST_OVERLAP = 8
+
     INTRO_LINES = (
         "Oh mreow!!!",
         "I did not notice you there!",
@@ -41,7 +35,18 @@ class Tutorial(Gameplay):
         "Noob >:)",
         "But if you insist...",
     )
+    OUTRO_LINES = (
+        "Oh...you did...surprisingly well...",
+        "But you won't beat this!",
+    )
 
+    # Delays and Durations.
+    SKIP_PROMPT_DELAY = 5.0
+    ENTER_DURATION = 0.45
+    EXIT_DURATION = 0.45
+    CAT_REST_OVERLAP = 8
+
+    # Phase names.
     ENTERING = "entering"
     INTRO = "intro"
     INTRO_OUT = "intro_out"
@@ -60,6 +65,7 @@ class Tutorial(Gameplay):
     EXITING = "exiting"
     FAILED = "failed"
 
+    # Lessons.
     LESSONS = {
         CHOOSE_TOWER: (
             "Choose a tower by clicking the highlighted selection panel.",
@@ -74,8 +80,7 @@ class Tutorial(Gameplay):
             "CLICK A TOWER",
         ),
         PLACE_TOWER: (
-            "Click a highlighted slot to place your tower. "
-            "[Q] cancels placement.",
+            "Click a highlighted slot to place your tower. ",
             "CLICK A SLOT",
         ),
         INSPECT_TOWER: (
@@ -115,18 +120,28 @@ class Tutorial(Gameplay):
 
     def __init__(self, app: App, game_map: GameMap = NEON_GRID_MAP) -> None:
         super().__init__(app, game_map)
+        # First phase is the entering phase.
         self.phase = self.ENTERING
+
+        # Indices for the intro and outro.
         self.intro_index = 0
         self.outro_index = 0
+
+        # Start the guide text with the first intro line.
         self.guide_text = self.INTRO_LINES[0]
         self.prompt = self.CONTINUE_PROMPT
+
+        # Cat timers.
         self.bob_time = 1.0
         self.guide_time = 0.0
         self.cat_pop = 0.0
         self.cat_target = 0.0
-        # Trim padding; the cropped torso rests behind the box's upper edge.
+
+        # Trim padding.
         cat = self.CAT_IMG.subsurface(self.CAT_IMG.get_bounding_rect())
         self.cat_image = pygame.transform.scale(cat, (96, 96))
+
+        # Text objects
         self.message_text = TextObject(
             font_size=11, color="#efffff", anchor="topleft"
         )
@@ -136,15 +151,18 @@ class Tutorial(Gameplay):
         self.step_text = TextObject(
             font_size=8, color="#73acba", anchor="bottomleft"
         )
+
+        # Font for message wrapping.
         self.message_font = get_font(
             self.message_text.font, self.message_text.font_size
         )
-        self.prompt_font = get_font(
-            self.prompt_text.font, self.prompt_text.font_size
-        )
         self.message_box = pygame.Rect(10, 256, 330, 84)
+
+        # Up and down message bobbing. 
         self.enter_progress = 0.0
         self.exit_progress = 0.0
+
+        # TODO
         self.exit_start_y = self.message_box.top
         self.health_power_highlight = (
             self.HEALTHBAR_IMG.get_bounding_rect().move(10, 15).inflate(4, 4)
@@ -152,11 +170,14 @@ class Tutorial(Gameplay):
 
         self.wave_state.MAX_WAVES = 2
         self.wave_state.next_ready = False
-        # Keep the start/skip controls clear of the bottom-left dialogue.
+
+        # Buttons
+        # Keep the start/skip controls clear of the dialogue.
         self.wave_ready_rect.midtop = (335, 8)
         self.skip_wave_rect.midtop = (335, 8)
         self.wave_ready_text.position = self.wave_ready_rect.center
         self.skip_wave_text.position = self.skip_wave_rect.center
+
         self.back_button = Button(
             position=(590, 10),
             anchor="topright",
@@ -164,6 +185,7 @@ class Tutorial(Gameplay):
             unlit_img=self.BACK_UNLIT_IMG,
             action=self.leave_tutorial,
         )
+
         hidden_image = pygame.Surface((1, 1), pygame.SRCALPHA)
         for button in (
             self.home_button, self.settings_button,
@@ -176,28 +198,33 @@ class Tutorial(Gameplay):
         """Slide the cat and dialogue away before returning to map selection."""
         if self.phase == self.EXITING:
             return
-        self.exit_start_y = self._message_rect().top
+        # Set the y position of the message box for the slide down
+        # otherwise it can be choppy
+        self.exit_start_y = self.message_rect().top
         self.exit_progress = 0.0
-        self._set_phase(self.EXITING)
+        self.set_phase(self.EXITING)
         self.cat_target = 0.0
         self.prompt = ""
 
     @staticmethod
-    def _left_click(event: pygame.event.Event) -> bool:
+    def left_click(event: pygame.event.Event) -> bool:
         return event.type == pygame.MOUSEBUTTONDOWN and event.button == 1
 
     @classmethod
-    def _advance_pressed(cls, event: pygame.event.Event) -> bool:
-        return cls._left_click(event) or (
+    def advance_pressed(cls, event: pygame.event.Event) -> bool:
+        return cls.left_click(event) or (
             event.type == pygame.KEYDOWN and event.key == pygame.K_n
         )
 
-    def _set_phase(self, phase: str) -> None:
+    def set_phase(self, phase: str) -> None:
         self.phase = phase
         self.guide_time = 0.0
+        
         if phase in self.LESSONS:
             self.guide_text, self.prompt = self.LESSONS[phase]
-        self.wave_state.next_ready = phase == self.START_WAVE
+
+        if phase == self.START_WAVE: 
+            self.wave_state.next_ready = True
 
     def handle_event(self, event: pygame.event.Event) -> None:
         """Only accept the action being taught; never forward arbitrary input."""
@@ -205,28 +232,21 @@ class Tutorial(Gameplay):
             return
         if self.back_button.handle_event(event):
             return
-        if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-            self.leave_tutorial()
-            return
         if event.type == pygame.KEYDOWN and getattr(event, "repeat", False):
             return
         if self.phase == self.ENTERING:
             return
 
-        click = self._left_click(event)
+        click = self.left_click(event)
         if self.phase == self.INTRO:
-            if self._advance_pressed(event):
-                self._advance_intro()
+            if self.advance_pressed(event):
+                self.advance_intro()
         elif self.phase == self.GOOD_LUCK:
-            if self._advance_pressed(event):
-                if self.outro_index + 1 < len(self.OUTRO_LINES):
-                    self.outro_index += 1
-                    self.guide_text = self.OUTRO_LINES[self.outro_index]
-                    self.bob_time = 0.0
-                else:
-                    self.leave_tutorial()
+            if self.advance_pressed(event):
+                self.advance_outro()
+        # NOTE:This case in the current state shouldn't happen
         elif self.phase == self.FAILED:
-            if self._advance_pressed(event):
+            if self.advance_pressed(event):
                 self.app.change_screen(Tutorial(self.app, self.game_map))
         elif self.phase in (self.CHOOSE_TOWER, self.RESELECT_TOWER):
             if click and any(
@@ -234,9 +254,12 @@ class Tutorial(Gameplay):
                 for rect in self.tower_selection_rects
             ):
                 previous_phase = self.phase
+                # Because we have checked for collision with the tower
+                # rects, we can dleegate the work to Gameplays event 
+                # handler
                 super().handle_event(event)
                 if self.selected_tower_type is not None:
-                    self._set_phase(
+                    self.set_phase(
                         self.CANCEL_PLACEMENT
                         if previous_phase == self.CHOOSE_TOWER
                         else self.PLACE_TOWER
@@ -246,14 +269,51 @@ class Tutorial(Gameplay):
                         "That tower costs more power than you have. "
                         "Choose the first tower."
                     )
+
+        #         if (
+        #     self.phase in (self.CANCEL_PLACEMENT, self.PLACE_TOWER)
+        #     and click
+        #     and self.selected_tower_type is not None
+        #     and any(
+        #         tower_type is self.selected_tower_type
+        #         and rect.collidepoint(event.pos)
+        #         for tower_type, rect in zip(
+        #             self.TOWER_SELECTION, self.tower_selection_rects
+        #         )
+        #     )
+        # ):
+        #     self.cancel_tower_placement()
+        #     self.set_phase(self.RESELECT_TOWER)
+        #     return
+        
         elif self.phase == self.CANCEL_PLACEMENT:
-            if event.type == pygame.KEYDOWN and event.key == pygame.K_q:
+            if (
+                (event.type == pygame.KEYDOWN and event.key == pygame.K_q) or 
+                (click and 
+                    any(tower_type is self.selected_tower_type and 
+                        rect.collidepoint(event.pos) 
+                            for tower_type, rect in zip(
+                                self.TOWER_SELECTION, self.tower_selection_rects
+                            )
+                        )
+                )
+            ):
                 self.cancel_tower_placement()
-                self._set_phase(self.RESELECT_TOWER)
+                self.set_phase(self.RESELECT_TOWER)
         elif self.phase == self.PLACE_TOWER:
-            if event.type == pygame.KEYDOWN and event.key == pygame.K_q:
+            if (
+                (event.type == pygame.KEYDOWN and event.key == pygame.K_q) or 
+                (click and 
+                    any(tower_type is self.selected_tower_type and 
+                        rect.collidepoint(event.pos) 
+                            for tower_type, rect in zip(
+                                self.TOWER_SELECTION, self.tower_selection_rects
+                            )
+                        )
+                )
+            ):
                 self.cancel_tower_placement()
-                self._set_phase(self.RESELECT_TOWER)
+                self.set_phase(self.RESELECT_TOWER)
             elif event.type == pygame.MOUSEMOTION:
                 super().handle_event(event)
             elif click and any(
@@ -263,24 +323,24 @@ class Tutorial(Gameplay):
                 count = len(self.towers)
                 super().handle_event(event)
                 if len(self.towers) > count:
-                    self._set_phase(self.INSPECT_TOWER)
+                    self.set_phase(self.INSPECT_TOWER)
                 elif self.selected_tower_type is None:
-                    self._set_phase(self.RESELECT_TOWER)
+                    self.set_phase(self.RESELECT_TOWER)
         elif self.phase == self.INSPECT_TOWER:
             if click:
                 for index, tower in enumerate(self.towers):
                     if tower.rect.collidepoint(event.pos):
                         self.sidebar_tower = tower
                         self.sidebar_tower_idx = index
-                        self._set_phase(self.CLOSE_SIDEBAR)
+                        self.set_phase(self.CLOSE_SIDEBAR)
                         break
         elif self.phase == self.CLOSE_SIDEBAR:
             if click:
                 self.sidebar_tower = self.sidebar_tower_idx = None
-                self._set_phase(self.STATS)
+                self.set_phase(self.STATS)
         elif self.phase == self.STATS:
-            if self._advance_pressed(event):
-                self._set_phase(self.START_WAVE)
+            if self.advance_pressed(event):
+                self.set_phase(self.START_WAVE)
         elif self.phase == self.START_WAVE:
             if (
                 event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE
@@ -292,17 +352,24 @@ class Tutorial(Gameplay):
             ) or (click and self.skip_wave_rect.collidepoint(event.pos)):
                 self.skip_wave()
 
-    def _advance_intro(self) -> None:
+    def advance_intro(self) -> None:
         if self.intro_index + 1 < len(self.INTRO_LINES):
             self.intro_index += 1
             self.guide_text = self.INTRO_LINES[self.intro_index]
             self.bob_time = 0.0
-            # Only the first appearance rises fully; later lines gently bob.
             self.cat_target = 1.0
         else:
-            self._set_phase(self.INTRO_OUT)
+            self.set_phase(self.INTRO_OUT)
             self.prompt = "LET'S BEGIN!"
             self.cat_target = 0.0
+
+    def advance_outro(self) -> None:
+        if self.outro_index + 1 < len(self.OUTRO_LINES):
+            self.outro_index += 1
+            self.guide_text = self.OUTRO_LINES[self.outro_index]
+            self.bob_time = 0.0
+        else:
+            self.leave_tutorial()
 
     def start_wave(self) -> None:
         """Gate both UI and direct calls, queuing one enemy per lesson wave."""
@@ -326,10 +393,10 @@ class Tutorial(Gameplay):
         self.enemy_state.wave_spawn_times[wave] = now
         if wave == 1:
             self.spawn_enemy(1)
-            self._set_phase(self.WATCH_WAVE)
+            self.set_phase(self.WATCH_WAVE)
         else:
             # Leave a spawn interval between the enemies so both are visible.
-            self._set_phase(self.WAVES)
+            self.set_phase(self.WAVES)
 
     @property
     def can_skip_wave(self) -> bool:
@@ -353,7 +420,7 @@ class Tutorial(Gameplay):
         """Finish the tutorial waves and go straight to the closing dialogue."""
         super().set_next_wave_ready(current_time)
         if self.wave_state.won:
-            self._set_phase(self.GOOD_LUCK)
+            self.set_phase(self.GOOD_LUCK)
             self.outro_index = 0
             self.guide_text = self.OUTRO_LINES[0]
             self.prompt = self.CONTINUE_PROMPT
@@ -362,13 +429,15 @@ class Tutorial(Gameplay):
 
     def set_game_over(self) -> None:
         super().set_game_over()
-        self._set_phase(self.FAILED)
+        self.set_phase(self.FAILED)
         self.guide_text = "Let's try that again. I'll walk you through it!"
         self.prompt = self.CONTINUE_PROMPT
         self.cat_target = 1.0
         self.bob_time = 0.0
 
     def update(self, dt: float) -> None:
+        if self.phase not in (self.WATCH_WAVE, self.WAVES):
+            self.cpu.update(dt)
         self.bob_time += dt
         previous_guide_time = self.guide_time
         self.guide_time += dt
@@ -379,7 +448,7 @@ class Tutorial(Gameplay):
         if self.phase == self.ENTERING:
             self.enter_progress = min(1.0, self.enter_progress + dt / self.ENTER_DURATION)
             if self.enter_progress == 1.0:
-                self._set_phase(self.INTRO)
+                self.set_phase(self.INTRO)
             return
         if self.phase == self.EXITING:
             self.exit_progress = min(1.0, self.exit_progress + dt / self.EXIT_DURATION)
@@ -387,7 +456,7 @@ class Tutorial(Gameplay):
                 self.app.get_map_selection()
             return
         if self.phase == self.INTRO_OUT and self.cat_pop == 0.0:
-            self._set_phase(self.CHOOSE_TOWER)
+            self.set_phase(self.CHOOSE_TOWER)
 
         if self.phase == self.WATCH_WAVE:
             # Play the first moments before introducing skipping. Clamp a slow
@@ -395,7 +464,7 @@ class Tutorial(Gameplay):
             watch_dt = min(dt, max(0.0, self.SKIP_PROMPT_DELAY - previous_guide_time))
             super().update(watch_dt)
             if self.phase == self.WATCH_WAVE and self.guide_time >= self.SKIP_PROMPT_DELAY:
-                self._set_phase(self.SKIP_WAVE)
+                self.set_phase(self.SKIP_WAVE)
         elif self.phase == self.WAVES:
             super().update(dt)
         else:
@@ -417,11 +486,11 @@ class Tutorial(Gameplay):
         # Suppress the campaign victory label while reusing the whole board.
         self.victory_text.text = ""
         super().draw(window)
-        self._draw_highlight(window)
-        self._draw_message(window)
+        self.draw_highlight(window)
+        self.draw_message(window)
         self.back_button.draw(window)
 
-    def _draw_highlight(self, window: pygame.Surface) -> None:
+    def draw_highlight(self, window: pygame.Surface) -> None:
         if self.phase in (self.CHOOSE_TOWER, self.RESELECT_TOWER):
             rects = [pygame.Rect(445, 295, 154, 54)]
         elif self.phase == self.PLACE_TOWER:
@@ -451,7 +520,7 @@ class Tutorial(Gameplay):
             )
         window.blit(overlay, (0, 0))
 
-    def _message_rect(self) -> pygame.Rect:
+    def message_rect(self) -> pygame.Rect:
         if self.phase == self.ENTERING:
             eased = self.enter_progress ** 2 * (3 - 2 * self.enter_progress)
             bubble = self.message_box.copy()
@@ -471,7 +540,7 @@ class Tutorial(Gameplay):
             bob = round(4 * math.sin(math.pi * self.bob_time / 0.4))
         return self.message_box.move(0, -bob)
 
-    def _cat_rect(self, bubble: pygame.Rect) -> pygame.Rect:
+    def cat_rect(self, bubble: pygame.Rect) -> pygame.Rect:
         # Ease the entrance without restarting it when a sentence changes.
         eased_pop = self.cat_pop * self.cat_pop * (3 - 2 * self.cat_pop)
         top = (
@@ -480,7 +549,7 @@ class Tutorial(Gameplay):
         )
         return self.cat_image.get_rect(topleft=(bubble.left + 26, top))
 
-    def _wrapped_message(self) -> list[str]:
+    def wrapped_message(self) -> list[str]:
         lines = []
         line = ""
         for word in self.guide_text.split():
@@ -497,21 +566,21 @@ class Tutorial(Gameplay):
             lines.append(line)
         return lines
 
-    def _draw_message(self, window: pygame.Surface) -> None:
-        bubble = self._message_rect()
+    def draw_message(self, window: pygame.Surface) -> None:
+        bubble = self.message_rect()
         # Draw the cat first and mask everything below the box's upper edge.
         # The cropped torso meets that edge, including during the talking bob.
         if self.cat_pop > 0:
             previous_clip = window.get_clip()
             mask = pygame.Rect(bubble.left, 0, bubble.width, bubble.top + 2)
             window.set_clip(previous_clip.clip(mask))
-            window.blit(self.cat_image, self._cat_rect(bubble))
+            window.blit(self.cat_image, self.cat_rect(bubble))
             window.set_clip(previous_clip)
 
         pygame.draw.rect(window, (5, 16, 34), bubble, border_radius=5)
         pygame.draw.rect(window, (95, 233, 255), bubble, 2, border_radius=5)
         body = pygame.Rect(bubble.x + 14, bubble.y + 9, bubble.width - 28, 44)
-        lines = self._wrapped_message()
+        lines = self.wrapped_message()
         line_height = self.message_font.get_linesize()
         y = body.centery - len(lines) * line_height // 2
         for line in lines:

@@ -41,7 +41,7 @@ class TrojanFile(Enemy):
 
     def __init__(
         self,
-        path: list[tuple[float, float]] | tuple[tuple[float, float], ...],
+        path: tuple[tuple[float, float], ...],
         level: int = 1,
     ) -> None:
         """
@@ -88,16 +88,22 @@ class TrojanFile(Enemy):
         """Track a spawnling so it counts toward the active limit."""
         self.spawnlings.append(spawnling)
 
-    def make_spawnling_path(self) -> list[tuple[float, float]] | None:
+    def make_spawnling_path(
+        self,
+    ) -> tuple[tuple[float, float], ...] | None:
         """Return a route beginning at this Trojan File's position."""
         if self.reached_end:
             return None
 
-        route = [(self.x_position, self.y_position)]
-        route.extend(self.path[self.current_waypoint:])
+        route = (
+            (self.x_position, self.y_position),
+            *self.path[self.current_waypoint:],
+        )
         return route if len(route) >= 2 else None
 
-    def consume_spawnling(self) -> list[tuple[float, float]] | None:
+    def consume_spawnling(
+        self,
+    ) -> tuple[tuple[float, float], ...] | None:
         """Return one spawnling route when the spawn timer is ready."""
         if not self.spawnling_ready:
             return None

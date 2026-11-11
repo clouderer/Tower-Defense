@@ -21,6 +21,12 @@ class BitBlaster(Tower):
 
     BITBLASTER_ASSET_DIR: ClassVar[Path] = Path(
         __file__).resolve().parents[5] / "asset_files" / "bitblaster"
+    PROJECTILE_SHEET: ClassVar[Path] = (
+        BITBLASTER_ASSET_DIR / "bitblaster_projectile_sheet.png"
+    )
+    IMPACT_SHEET: ClassVar[Path] = (
+        BITBLASTER_ASSET_DIR / "bitblaster_impact_sheet.png"
+    )
     RANGE_SHEETS: ClassVar[tuple[Path, ...]] = (
         BITBLASTER_ASSET_DIR / "bitblaster_level_1_60px_sheet.png",
         BITBLASTER_ASSET_DIR / "bitblaster_level_2_70px_sheet.png",
