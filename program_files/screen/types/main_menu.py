@@ -17,11 +17,16 @@ class MainMenu(Screen):
     MENU_ASSET_DIR: ClassVar[Path] = Path(__file__).resolve(
     ).parents[3] / "asset_files" / "menu"
 
-    MENU_IMG: ClassVar[pygame.image] =  pygame.image.load(MENU_ASSET_DIR / "main_menu.png")
-    PLAY_LIT_IMG: ClassVar[pygame.image] =  pygame.image.load(MENU_ASSET_DIR / "play_lit.png")
-    PLAY_UNLIT_IMG: ClassVar[pygame.image] = pygame.image.load(MENU_ASSET_DIR / "play_unlit.png")
-    SETTING_UNLIT_IMG: ClassVar[pygame.image] = pygame.image.load(MENU_ASSET_DIR / "setting_unlit.png")
-    SETTING_LIT_IMG: ClassVar[pygame.image] = pygame.image.load(MENU_ASSET_DIR / "setting_lit.png")
+    MENU_IMG: ClassVar[pygame.image] = pygame.image.load(
+        MENU_ASSET_DIR / "main_menu.png")
+    PLAY_LIT_IMG: ClassVar[pygame.image] = pygame.image.load(
+        MENU_ASSET_DIR / "play_lit.png")
+    PLAY_UNLIT_IMG: ClassVar[pygame.image] = pygame.image.load(
+        MENU_ASSET_DIR / "play_unlit.png")
+    SETTING_UNLIT_IMG: ClassVar[pygame.image] = pygame.image.load(
+        MENU_ASSET_DIR / "setting_unlit.png")
+    SETTING_LIT_IMG: ClassVar[pygame.image] = pygame.image.load(
+        MENU_ASSET_DIR / "setting_lit.png")
 
     def __init__(self, app: App) -> None:
         """Create the main menu buttons and animation."""

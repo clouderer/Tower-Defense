@@ -24,8 +24,10 @@ class TowerLevel:
     upgrade_cost: Optional[int]
 
 # Note: Tower was supposed to be an abstract class but for the purposes
-# of testing  the Tower is non-abstract 
+# of testing  the Tower is non-abstract
 # For the future the Tower can be abstracted
+
+
 class Tower:
     """
     Manage shared tower stats, attacks, animation, and sidebar text.

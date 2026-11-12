@@ -34,12 +34,12 @@ class Beam:
         self.max_range = max_range
         self.duration = duration
         self.fps = fps
-        
+
         self.elapsed = 0.0
         self.fade_elapsed: float | None = None
         self.finished = False
         self.end = (target.x_position, target.y_position)
-        
+
         self.emitter_frames = Projectile.get_frames(emitter_sheet, 8, 1)
         self.impact_frames = Projectile.get_frames(impact_sheet, 8, 1)
 

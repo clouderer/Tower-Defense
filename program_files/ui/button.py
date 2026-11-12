@@ -12,7 +12,7 @@ class Button:
 
     def __init__(
         self,
-        position: tuple[int,int],
+        position: tuple[int, int],
         unlit_img: pygame.image,
         lit_img: pygame.image,
 

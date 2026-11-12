@@ -19,7 +19,7 @@ class MapOption:
     def __init__(
         self,
         image_path: Path,
-        position: tuple[int,int],
+        position: tuple[int, int],
         gamemap: GameMap,
     ) -> None:
         """Load the map image and store its position and game map."""
@@ -40,7 +40,7 @@ class MapSelection(Screen):
 
     SELECT_MENU_IMG: ClassVar[pygame.image] = pygame.image.load(
         MAP_OPT_ASSET_DIR / "map_selection0.png")
-    FRAME_UNLIT_IMG: ClassVar[pygame.image] =  pygame.image.load(
+    FRAME_UNLIT_IMG: ClassVar[pygame.image] = pygame.image.load(
         MAP_OPT_ASSET_DIR / "frame_unlit.png")
     FRAME_LIT_IMG: ClassVar[pygame.image] = pygame.image.load(
         MAP_OPT_ASSET_DIR / "frame_lit.png")
@@ -54,7 +54,7 @@ class MapSelection(Screen):
     TUTORIAL_BUTTON_UNLIT_IMG: ClassVar[pygame.image] = pygame.image.load(
         MAP_OPT_ASSET_DIR / "tutorial_unlit.png")
 
-    # These offsets are used for offsetting the map 
+    # These offsets are used for offsetting the map
     # into the frame positions.
     # The width of the frame is exactly one pixel in x,y directions.
     X_OFFSET: ClassVar[int] = 1
@@ -62,7 +62,7 @@ class MapSelection(Screen):
 
     # The menu has space for three maps. Only the first map is
     # available for the time being.
-    MAP_PLACEMENTS: ClassVar[list[tuple[int,int]]] = [
+    MAP_PLACEMENTS: ClassVar[list[tuple[int, int]]] = [
         (37, 101),
         (217, 101),
         (397, 101)]
@@ -89,7 +89,8 @@ class MapSelection(Screen):
             anchor="midtop",
             unlit_img=self.TUTORIAL_BUTTON_UNLIT_IMG,
             lit_img=self.TUTORIAL_BUTTON_LIT_IMG,
-            action=lambda: self.app.push_screen(Tutorial(self.app, NEON_GRID_MAP)),
+            action=lambda: self.app.push_screen(
+                Tutorial(self.app, NEON_GRID_MAP)),
         )
 
         self.back_button = Button(

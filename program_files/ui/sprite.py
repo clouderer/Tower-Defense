@@ -14,8 +14,8 @@ class Sprite(pygame.sprite.Sprite):
         image: Path,
         x_cnt: int = 8,
         y_cnt: int = 10,
-        position: tuple[int,int] = (0, 0),
-        fps:int = 18,
+        position: tuple[int, int] = (0, 0),
+        fps: int = 18,
     ) -> None:
         """
         Load the sheet and place the first frame at the given position.

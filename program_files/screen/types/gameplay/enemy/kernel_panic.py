@@ -1,7 +1,6 @@
 """Provide the final boss and its temporary damage shield."""
 
 
-
 from pathlib import Path
 from typing import ClassVar
 

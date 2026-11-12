@@ -21,6 +21,8 @@ PIXEL_FONT = str(
 
 # maxsize is set to one because only one font type is being loaded
 # @generated "fully" GitHub Copilot: Font loading function
+
+
 @lru_cache(maxsize=1)
 def get_font(font_path: Path, font_size: int) -> pygame.font.Font:
     """Reuse loaded fonts with the same file path and size."""

@@ -160,7 +160,7 @@ class TutorialTests(unittest.TestCase):
         self.assertIn(2, tutorial.wave_state.active_waves)
         self.assertIn(first_enemy, tutorial.enemy_state.enemies)
 
-    def test_side_panel_hides_back_button_and_click_does_not_leave_tutorial(self):
+    def test_side_panel_hides_back_button_and_click_stays_in_tutorial(self):
         self.place_tower()
         tower = self.tutorial.towers[0]
         self.click(tower.rect.center)

@@ -38,7 +38,7 @@ class WaveState:
     next_ready: bool = True
     won: bool = False
 
-    # Holds the set of waves, which are currently active. 
+    # Holds the set of waves, which are currently active.
     active_waves: set[int] = field(default_factory=set)
     # Holds the set of waves which were rewarded.
     rewarded_waves: set[int] = field(default_factory=set)
@@ -89,14 +89,14 @@ class Gameplay(Screen):
 
     HEALTHBAR_IMG: ClassVar[pygame.Surface] = pygame.image.load(
         GAMEPLAY_ASSET_DIR / "healthbar.png")
-    
+
     TOWER_SELECTION_IMG: ClassVar[pygame.Surface] = pygame.image.load(
         GAMEPLAY_ASSET_DIR / "tower_selection.png")
     SELECTION_OVERLAY_IMG: ClassVar[pygame.Surface] = pygame.image.load(
         GAMEPLAY_ASSET_DIR / "selection_overlay.png")
     SELECTED_OVERLAY_IMG: ClassVar[pygame.Surface] = pygame.image.load(
         GAMEPLAY_ASSET_DIR / "selected_overlay.png")
-    
+
     START_WAVE_IMG: ClassVar[pygame.Surface] = pygame.image.load(
         GAMEPLAY_ASSET_DIR / "bar.png")
     SKIP_WAVE_IMG: ClassVar[pygame.Surface] = pygame.image.load(
@@ -341,7 +341,7 @@ class Gameplay(Screen):
             ),
         ]
 
-    def spawn_enemy(self, wave_number:int | None = None) -> None:
+    def spawn_enemy(self, wave_number: int | None = None) -> None:
         """
         Spawn the next queued enemy belonging to the requested wave.
         """
@@ -398,7 +398,7 @@ class Gameplay(Screen):
             and not self.wave_state.next_ready
             and not self.wave_state.cleared
             and self.wave_state.round < self.wave_state.MAX_WAVES
-            and not self.paused 
+            and not self.paused
             and not self.game_over
             and not self.wave_state.won
         )
@@ -462,7 +462,7 @@ class Gameplay(Screen):
         paused_duration = now - self.pause_start_time
         self.enemy_state.spawn_time += paused_duration
 
-        # Because of the skippable waves, we also need to add the 
+        # Because of the skippable waves, we also need to add the
         # paused duration to the times of each started waves.
         for wave_number in self.enemy_state.wave_spawn_times:
             self.enemy_state.wave_spawn_times[wave_number] += paused_duration
@@ -532,7 +532,7 @@ class Gameplay(Screen):
             self.over_restart_button.handle_event(event)
             return
         if self.wave_state.won:
-            if (event.type == pygame.MOUSEBUTTONDOWN and event.button == 1): 
+            if (event.type == pygame.MOUSEBUTTONDOWN and event.button == 1):
                 self.app.get_main_menu()
             return
         if self.pause_button.handle_event(event):
@@ -542,8 +542,8 @@ class Gameplay(Screen):
             (event.type == pygame.KEYDOWN and event.key == pygame.K_s)
             or
             (event.type == pygame.MOUSEBUTTONDOWN and event.button == 1
-            and self.can_skip_wave
-            and self.skip_wave_rect.collidepoint(event.pos))
+             and self.can_skip_wave
+             and self.skip_wave_rect.collidepoint(event.pos))
         ):
             self.skip_wave()
             return
@@ -750,6 +750,7 @@ class Gameplay(Screen):
 
         if (self.can_skip_wave and self.sidebar_tower is None):
             self.draw_skip_wave(window)
+
     def draw_sidebar(self, window: pygame.Surface) -> None:
         """
         Darken the map and draw the selected tower and its sidebar.
@@ -811,8 +812,9 @@ class Gameplay(Screen):
 
     def draw_placement_preview(self, window: pygame.Surface) -> None:
         """Draw the hovered tower and its range at low opacity."""
-        if (self.selected_tower_type is None or
-            self.placement_preview is None
+        if (
+            self.selected_tower_type is None
+            or self.placement_preview is None
         ):
             return
 
