@@ -15,7 +15,7 @@ import pygame
 from program_files.app import App
 from program_files.maps.game_map import NEON_GRID_MAP
 from program_files.screen.types.gameplay.tower.firewall_pulse import (
-    FirewallPulse,
+    FirewallPulse,s
 )
 from program_files.screen.types.tutorial import Tutorial
 from program_files.ui.text_object import get_font
