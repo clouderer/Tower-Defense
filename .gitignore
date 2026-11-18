@@ -4,11 +4,9 @@ __pycache__/
 .venv/
 .DS_Store
 
-# Screenshots captured during visible balance runs
 tools/balance_results/visible_*/wave_*.png
 tools/balance_results/visible_*/result.png
 
-# Generated balance run logs and result tables
 tools/balance_results/**/*.txt
 tools/balance_results/visible_*/*.csv
 tools/balance_results/visible_*/summary.json
@@ -16,5 +14,4 @@ tools/balance_results/2026-10-21_boss/*_audit*.json
 tools/balance_results/2026-10-21_boss/boss_isolated.json
 tools/balance_results/current*/
 
-# Local Piskel project copies
 .piskel-mcp/projects/*.json
